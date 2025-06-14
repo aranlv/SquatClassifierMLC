@@ -15,19 +15,22 @@ struct OverlayView: View {
 
     var body: some View {
         VStack {
-//            HStack {
-//                Spacer()
-//                VStack {
-//                    Text("Count")
-//                        .font(.title)
-//                        .foregroundColor(.white)
-//                    Text("\(count, specifier: "%2.0f")")
-//                        .font(.title)
-//                        .foregroundColor(.white)
-//                }
-//                Spacer()
-//            }.bubbleBackground()
-
+            HStack {
+                Spacer()
+                VStack {
+                    Text("Reps")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .bold()
+                    Text("\(count, specifier: "%2.0f")")
+                        .font(.system(size: 40, weight: .heavy))
+                        .foregroundColor(.green)
+                }
+                .bubbleBackground()
+                Spacer()
+            }
+            .padding(.top, 16)
+            
             Spacer()
 
             HStack {
