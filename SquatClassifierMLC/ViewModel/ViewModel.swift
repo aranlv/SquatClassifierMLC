@@ -10,6 +10,16 @@ import CreateMLComponents
 import AsyncAlgorithms
 import CoreML
 
+import Foundation
+
+enum NavigationDestination: Equatable {
+    case home
+    case tutorial
+    case step1
+    case step2
+    case step3
+}
+
 /// - Tag: ViewModel
 class ViewModel: ObservableObject {
 
