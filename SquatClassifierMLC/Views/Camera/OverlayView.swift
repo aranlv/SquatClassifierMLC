@@ -1,55 +1,67 @@
 /*
-See LICENSE folder for this sample’s licensing information.
-
-Abstract:
-The app's overlay view.
-*/
+ See LICENSE folder for this sample’s licensing information.
+ 
+ Abstract:
+ The app's overlay view.
+ */
 
 import SwiftUI
 
 /// - Tag: OverlayView
 struct OverlayView: View {
-
+    
     let count: Float
+    let actionLabel: String?
     let flip: () -> Void
-
+    
     var body: some View {
         VStack {
+            // Top‑left bubble – Reps
             HStack {
                 Spacer()
-                VStack {
+                VStack(spacing: 4) {
                     Text("Reps")
-                        .font(.title2)
+                        .font(.title2).bold()
                         .foregroundColor(.white)
-                        .bold()
                     Text("\(count, specifier: "%2.0f")")
                         .font(.system(size: 40, weight: .heavy))
                         .foregroundColor(.green)
                 }
                 .bubbleBackground()
+                
+                // Middle bubble – action label
+                if let label = actionLabel {
+                    Spacer(minLength: 12)
+                    Text(label)
+                        .font(.title)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.yellow)
+                        .bubbleBackground()
+                        .transition(.opacity)
+                }
                 Spacer()
             }
             .padding(.top, 16)
             
             Spacer()
-
+            
+            // Bottom‑left flip button
             HStack {
-                Button {
-                    flip()
-                } label: {
+                Button(action: flip) {
                     Label("Flip", systemImage: "arrow.triangle.2.circlepath.camera.fill")
-                        .foregroundColor(.primary)
                         .labelStyle(.iconOnly)
+                        .foregroundColor(.primary)
                         .bubbleBackground()
                 }
-
                 Spacer()
             }
-        }.padding()
+        }
+        .padding()
     }
 }
 
 extension View {
+    /// Semi‑transparent rounded rectangle behind any view.
     func bubbleBackground() -> some View {
         self.padding()
             .background {
@@ -62,8 +74,9 @@ extension View {
 
 struct OverlayView_Previews: PreviewProvider {
     static var previews: some View {
-        OverlayView(count: 3.0) { }
-            .background(Color.red.opacity(0.4))
-
+        ZStack {
+            Color.red.opacity(0.3)
+            OverlayView(count: 3, actionLabel: "Squat", flip: {})
+        }
     }
 }
