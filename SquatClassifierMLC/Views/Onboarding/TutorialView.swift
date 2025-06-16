@@ -26,6 +26,7 @@ struct WebView: UIViewRepresentable {
 
 struct TutorialView: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
+//    @ObservedObject var voiceManager: VoiceCommandManager
     @StateObject private var viewModel: TutorialViewModel
     
     init(navigationViewModel: AppNavigationViewModel) {
@@ -174,6 +175,7 @@ struct TutorialView: View {
 struct Step1View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
     @State private var showCameraWithPoses: Bool = false
+    @StateObject private var voiceManager = VoiceCommandManager()
     
     var body: some View {
         ZStack {
@@ -269,7 +271,7 @@ struct Step1View: View {
             }
         }
         .fullScreenCover(isPresented: $showCameraWithPoses) {
-            CameraWithPosesAndOverlaysView()
+            CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
                 .onAppear {
                     print("CameraWithPosesAndOverlaysView presented from Step1View")
                 }
@@ -286,6 +288,7 @@ struct Step1View: View {
 struct Step2View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
     @State private var showCameraWithPoses: Bool = false
+    @StateObject private var voiceManager = VoiceCommandManager()
     
     var body: some View {
         ZStack {
@@ -341,7 +344,7 @@ struct Step2View: View {
             }
         }
         .fullScreenCover(isPresented: $showCameraWithPoses) {
-            CameraWithPosesAndOverlaysView()
+            CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
                 .onAppear {
                     print("CameraWithPosesAndOverlaysView presented from Step2View")
                 }
@@ -357,6 +360,7 @@ struct Step2View: View {
 
 struct Step3View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
+    @StateObject private var voiceManager = VoiceCommandManager()
     @State private var showCameraWithPoses: Bool = false
     
     var body: some View {
@@ -473,7 +477,7 @@ struct Step3View: View {
                 .zIndex(1)
             }
             .fullScreenCover(isPresented: $showCameraWithPoses) {
-                CameraWithPosesAndOverlaysView()
+                CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
                     .onAppear {
                         print("CameraWithPosesAndOverlaysView presented from Step3View") // Debug print
                     }

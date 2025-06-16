@@ -32,7 +32,7 @@ struct OverlayView: View {
                 // Middle bubble – action label
                 if let label = actionLabel {
                     Spacer(minLength: 12)
-                    Text(label)
+                    Text(formatLabelForSpeech(label))
                         .font(.title)
                         .fontWeight(.semibold)
                         .foregroundColor(.yellow)
@@ -42,6 +42,13 @@ struct OverlayView: View {
                 Spacer()
             }
             .padding(.top, 16)
+            
+            if actionLabel == "Listening…" {
+                Text("🎧 Listening…")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.top, 10)
+            }
             
             Spacer()
             

@@ -13,7 +13,16 @@ import Foundation
 
 
 /// - Tag: ViewModel
+@MainActor
 class ViewModel: ObservableObject {
+    // MARK: Voice command
+//    @Published var isWorkoutRunning = false
+    @Published var isWorkoutActive: Bool = false
+    @Published var repCount: Int = 0
+    var voiceManager: VoiceCommandManager?
+//    var repCountPublisher: Published<Int>.Publisher { $repCount }
+//    var predictedActionPublisher: Published<String?>.Publisher { $predictedAction }
+    
     // MARK: UI‑bound @Published properties
     @Published var liveCameraImageAndPoses: (image: CGImage, poses: [Pose])?
     @Published var predictedAction: String?
@@ -40,7 +49,7 @@ class ViewModel: ObservableObject {
     // MARK: Squat‑counter state machine
     private enum SquatState { case standing, squatting, unknown }
     private var squatState: SquatState = .unknown
-    private var repCount   = 0
+//    private var repCount   = 0
     private var frameBuffer: [[Pose]] = []          // frames inside current rep
     private var selectedRepWindow: [[[Pose]]] = []  // last N finished reps (Upgrade A)
     
@@ -89,7 +98,10 @@ class ViewModel: ObservableObject {
                 case .squatting where angle > kneeUpThreshold:
                     squatState = .standing
                     repCount += 1
-                    await MainActor.run { self.uiCount = Float(repCount) }
+                    await MainActor.run {
+                        self.uiCount = Float(repCount)
+                        self.repCount = repCount // Add this so voice can use it
+                    }
                     print("✅ REP \(repCount) finished (\(frameBuffer.count) frames)")
                     
                     // Keep only last N reps
@@ -125,15 +137,72 @@ class ViewModel: ObservableObject {
         }
     }
     
+    // MARK: Voice Instruction (always‑resample)
+    func startWorkout() {
+            isWorkoutActive = true
+            print("🏋️‍♀️ Workout started")
+        }
+
+        func stopWorkout() {
+            isWorkoutActive = false
+            print("🛑 Workout stopped")
+        }
+    
     // MARK: Rep classification (always‑resample)
     private func classifyRep(buffer: [[Pose]]) {
+        guard isWorkoutActive else { return }
         guard !buffer.isEmpty else { return }
+
         let resampled = resample(buffer, to: requiredFrames)
+        
         guard let mlInput = try? makeInputArray(from: resampled),
-              let result  = try? classifier.prediction(poses: mlInput) else { return }
-        Task { @MainActor in
+              let result = try? classifier.prediction(poses: mlInput) else { return }
+
+        Task { [weak self] in
+            guard let self = self else { return }
+
+//            await MainActor.run {
+//                self.predictedAction = result.label
+//                print("🏷️ Rep label → \(result.label)")
+//            }
+//
+//            // Only speak if it's NOT "other_actions"
+//            if result.label != "other_actions" {
+//                let labelToSpeak = formatLabelForSpeech(result.label)
+//                let speechText = labelToSpeak // e.g., just "good", "bad toe", etc.
+//
+//                self.voiceManager?.speak(speechText)
+//            }
+            // Optional: comment this out to disable speaking
+//            await MainActor.run {
+//                self.voiceManager?.speak(speechText)
+//            }
             self.predictedAction = result.label
             print("🏷️ Rep label → \(result.label)")
+
+            let labelToSpeak = formatLabelForSpeech(result.label)
+
+            // ✅ Don't speak "other actions"
+            guard labelToSpeak != "unknown action" else { return }
+
+            let speechText = "Reps \(self.repCount), \(labelToSpeak)"
+            self.voiceManager?.speak(speechText)
+        }
+    }
+    
+    // MARK: Format Label for Clearer Speech
+    func formatLabelForSpeech(_ label: String) -> String {
+        switch label {
+        case "bad_toe":
+            return "Push your knees back"
+        case "bad_inwards":
+            return "Push your knees out"
+        case "good":
+            return "nice form"
+        case "other_actions":
+            return "unknown action"
+        default:
+            return label.replacingOccurrences(of: "_", with: " ")
         }
     }
     
