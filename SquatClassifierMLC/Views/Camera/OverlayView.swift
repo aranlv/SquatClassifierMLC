@@ -6,6 +6,7 @@
  */
 
 import SwiftUI
+import Foundation
 
 /// - Tag: OverlayView
 struct OverlayView: View {
@@ -32,7 +33,7 @@ struct OverlayView: View {
                 // Middle bubble – action label
                 if let label = actionLabel {
                     Spacer(minLength: 12)
-                    Text(formatLabelForSpeech(label))
+                    Text(label.formattedSpeechLabel)
                         .font(.title)
                         .fontWeight(.semibold)
                         .foregroundColor(.yellow)
@@ -84,6 +85,18 @@ struct OverlayView_Previews: PreviewProvider {
         ZStack {
             Color.red.opacity(0.3)
             OverlayView(count: 3, actionLabel: "Squat", flip: {})
+        }
+    }
+}
+
+extension String {
+    var formattedSpeechLabel: String {
+        switch self {
+        case "bad_toe": return "bad toe"
+        case "bad_inwards": return "bad inwards"
+        case "good": return "good"
+        case "other_actions": return "—"
+        default: return self.replacingOccurrences(of: "_", with: " ")
         }
     }
 }

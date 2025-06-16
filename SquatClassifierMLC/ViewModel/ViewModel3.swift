@@ -131,9 +131,9 @@ class ViewModel: ObservableObject {
             }
             
             // 4. FPS debug
-            let now = CFAbsoluteTimeGetCurrent()
-            print(String(format: "Frame rate %2.2f fps", 1 / (now - lastTime)))
-            lastTime = now
+//            let now = CFAbsoluteTimeGetCurrent()
+//            print(String(format: "Frame rate %2.2f fps", 1 / (now - lastTime)))
+//            lastTime = now
         }
     }
     
