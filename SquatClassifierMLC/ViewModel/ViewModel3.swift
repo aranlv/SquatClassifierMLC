@@ -68,16 +68,22 @@ class ViewModel: ObservableObject {
             if Task.isCancelled { return }
             
             // 1. Pose extraction
-            let poses = try await poseExtractor.applied(to: frame.feature)
+            let allPoses = try await poseExtractor.applied(to: frame.feature)
+            
+            let sortedPoses = allPoses.sorted{ $0.boundingBoxArea() > $1.boundingBoxArea()}
+            
+            guard let person = sortedPoses.first else { continue }
+            
+            let poses = [person]
             
             // 2. Squat state machine
-            if let person   = poses.first,
-               let hip      = person.keypoints[.leftHip]?.location,
-               let knee     = person.keypoints[.leftKnee]?.location,
-               let ankle    = person.keypoints[.leftAnkle]?.location,
-               person.keypoints[.leftHip]?.confidence ?? 0 > JointPoint.confidenceThreshold,
-               person.keypoints[.leftKnee]?.confidence ?? 0 > JointPoint.confidenceThreshold,
-               person.keypoints[.leftAnkle]?.confidence ?? 0 > JointPoint.confidenceThreshold {
+            if
+                let hip      = person.keypoints[.leftHip]?.location,
+                let knee     = person.keypoints[.leftKnee]?.location,
+                let ankle    = person.keypoints[.leftAnkle]?.location,
+                person.keypoints[.leftHip]?.confidence ?? 0 > JointPoint.confidenceThreshold,
+                person.keypoints[.leftKnee]?.confidence ?? 0 > JointPoint.confidenceThreshold,
+                person.keypoints[.leftAnkle]?.confidence ?? 0 > JointPoint.confidenceThreshold {
                 
                 let angle = calculateKneeAngle(hip: hip, knee: knee, ankle: ankle)
                 
@@ -110,7 +116,8 @@ class ViewModel: ObservableObject {
                 }
                 
                 // Accumulate current frame inside the ongoing rep
-                frameBuffer.append(poses)
+//                frameBuffer.append(poses)
+                frameBuffer.append([person])
             }
             
             // 3. UI overlay
