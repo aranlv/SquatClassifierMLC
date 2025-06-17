@@ -2,7 +2,6 @@
 //  SquatClassifierMLC
 //
 //  Created by Aretha Natalova Wahyudi on 15/06/25.
-//
 
 import SwiftUI
 import CreateMLComponents
@@ -16,14 +15,16 @@ class ViewModel: ObservableObject {
     @Published var predictedAction: String?
     var uiCount: Float = 0.0
 
+    // MARK: Constants & Tuneables
     private let requiredFrames     = 60
     private let maxRepsInMemory    = 10
     private let kneeDownThreshold  = 110.0
     private let kneeUpThreshold    = 150.0
+
+    // MARK: - [REVISION] Shoulder tracking vars
     private var shoulderTopY: CGFloat = 0
-    private var shoulderBottomY: CGFloat = 0
+    private var shoulderBottomY: CGFloat = .greatestFiniteMagnitude
     private let shoulderMotionDelta: CGFloat = 0.05
-    private let shoulderDropThresh: CGFloat = 0.05
 
     private lazy var classifier: SquatClassification = {
         do { return try SquatClassification(configuration: MLModelConfiguration()) }
@@ -61,56 +62,63 @@ class ViewModel: ObservableObject {
         for try await frame in frames {
             if Task.isCancelled { return }
 
-            let poses = try await poseExtractor.applied(to: frame.feature)
+            let allPoses = try await poseExtractor.applied(to: frame.feature)
 
-            if let person = poses.first,
-               let hip = person.keypoints[.leftHip]?.location,
-               let knee = person.keypoints[.leftKnee]?.location,
-               let ankle = person.keypoints[.leftAnkle]?.location,
-               let shoulder = person.keypoints[.leftShoulder]?.location,
-               person.keypoints[.leftHip]?.confidence ?? 0 > JointPoint.confidenceThreshold,
-               person.keypoints[.leftKnee]?.confidence ?? 0 > JointPoint.confidenceThreshold,
-               person.keypoints[.leftAnkle]?.confidence ?? 0 > JointPoint.confidenceThreshold,
-               person.keypoints[.leftShoulder]?.confidence ?? 0 > JointPoint.confidenceThreshold {
+            // MARK: - [REVISION] Always use the largest person
+            let sortedPoses = allPoses.sorted { $0.boundingBoxArea() > $1.boundingBoxArea() }
+            guard let person = sortedPoses.first else { continue }
+            let poses = [person]
+
+            // MARK: - [REVISION] Add shoulder detection to rep logic
+            if
+                let hip      = person.keypoints[.leftHip]?.location,
+                let knee     = person.keypoints[.leftKnee]?.location,
+                let ankle    = person.keypoints[.leftAnkle]?.location,
+                let shoulder = person.keypoints[.leftShoulder]?.location,
+                person.keypoints[.leftHip]?.confidence ?? 0 > JointPoint.confidenceThreshold,
+                person.keypoints[.leftKnee]?.confidence ?? 0 > JointPoint.confidenceThreshold,
+                person.keypoints[.leftAnkle]?.confidence ?? 0 > JointPoint.confidenceThreshold,
+                person.keypoints[.leftShoulder]?.confidence ?? 0 > JointPoint.confidenceThreshold {
 
                 let angle = calculateKneeAngle(hip: hip, knee: knee, ankle: ankle)
-                
-                if squatState == .unknown && angle > kneeUpThreshold {
-                    squatState = .standing
-                    shoulderTopY = shoulder.y
-                    print("🟢 Initialized: standing | shoulderY: \(shoulderTopY)")
-                }
+                print(String(format: "📐 Angle: %.2f | ShoulderY: %.6f | Baseline: %.6f", angle, shoulder.y, shoulderTopY))
 
-                if squatState == .standing && angle < kneeDownThreshold {
-                    squatState = .squatting
-                    shoulderBottomY = shoulder.y
-                    print("⬇️ Transitioned to squatting | shoulderBottomY: \(shoulderBottomY)")
-                }
-
-                if squatState == .squatting {
-                    // Track lowest point while squatting
-                    shoulderBottomY = min(shoulderBottomY, shoulder.y)
-                    
-                    // Check if standing up again
-                    if angle > kneeUpThreshold {
-                        let shoulderRise = shoulder.y - shoulderBottomY
-                        if shoulderRise > shoulderMotionDelta {
+                switch squatState {
+                    case .unknown:
+                        if angle > kneeUpThreshold {
                             squatState = .standing
-                            repCount += 1
-                            await MainActor.run { self.uiCount = Float(repCount) }
-                            print("✅ REP \(repCount) counted")
-
-                            selectedRepWindow.append(frameBuffer)
-                            if selectedRepWindow.count > maxRepsInMemory {
-                                selectedRepWindow.removeFirst(selectedRepWindow.count - maxRepsInMemory)
-                            }
-
-                            classifyRep(buffer: frameBuffer)
-                            frameBuffer.removeAll()
+                            shoulderTopY = shoulder.y
+                            shoulderBottomY = .greatestFiniteMagnitude
+                            print("🟢 Initialized to standing")
                         }
-                    }
-                }
 
+                    case .standing:
+                        if angle < kneeDownThreshold {
+                            squatState = .squatting
+                            shoulderBottomY = shoulder.y
+                            print("⬇️ Transitioned to squatting")
+                        }
+
+                    case .squatting:
+                        shoulderBottomY = min(shoulderBottomY, shoulder.y)
+                        if angle > kneeUpThreshold {
+                            let shoulderRise = shoulder.y - shoulderBottomY
+                            if shoulderRise > shoulderMotionDelta {
+                                squatState = .standing
+                                repCount += 1
+                                await MainActor.run { self.uiCount = Float(repCount) }
+                                print("✅ REP \(repCount) counted")
+
+                                selectedRepWindow.append(frameBuffer)
+                                if selectedRepWindow.count > maxRepsInMemory {
+                                    selectedRepWindow.removeFirst(selectedRepWindow.count - maxRepsInMemory)
+                                }
+
+                                classifyRep(buffer: frameBuffer)
+                                frameBuffer.removeAll()
+                            }
+                        }
+                }
 
                 frameBuffer.append(poses)
             }
@@ -149,7 +157,9 @@ class ViewModel: ObservableObject {
 
     private func makeInputArray(from window: [[Pose]]) throws -> MLMultiArray {
         let array = try MLMultiArray(shape: [requiredFrames as NSNumber, 3, 18], dataType: .float32)
-        let jointOrder: [JointKey] = [.nose, .leftEye, .rightEye, .leftEar, .rightEar,
+        let jointOrder: [JointKey] = [.nose,
+                                      .leftEye, .rightEye,
+                                      .leftEar, .rightEar,
                                       .leftShoulder, .rightShoulder,
                                       .leftElbow, .rightElbow,
                                       .leftWrist, .rightWrist,
@@ -163,14 +173,13 @@ class ViewModel: ObservableObject {
                 if let joint = pose.keypoints[jointKey] {
                     array[base] = Float(joint.location.x) as NSNumber
                     array[[NSNumber(value: t), 1, NSNumber(value: k)]] = Float(joint.location.y) as NSNumber
-                    array[[NSNumber(value: t), 2, NSNumber(value: k)]] = Float(joint.confidence) as NSNumber
+                    array[[NSNumber(value: t), 2, NSNumber(value: k)]] = Float(joint.confidence)  as NSNumber
                 } else {
-                    array[base] = 0
-                    array[[NSNumber(value: t), 1, NSNumber(value: k)]] = 0
-                    array[[NSNumber(value: t), 2, NSNumber(value: k)]] = 0
+                    array[base] = 0; array[[NSNumber(value: t), 1, NSNumber(value: k)]] = 0; array[[NSNumber(value: t), 2, NSNumber(value: k)]] = 0
                 }
             }
         }
         return array
     }
 }
+
