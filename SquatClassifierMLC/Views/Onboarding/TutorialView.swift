@@ -176,7 +176,8 @@ struct Step1View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
     @State private var showCameraWithPoses: Bool = false
     @StateObject private var voiceManager = VoiceCommandManager()
-    
+    @State private var countdownValue = 5
+
     var body: some View {
         ZStack {
             ScrollView {
@@ -271,7 +272,7 @@ struct Step1View: View {
             }
         }
         .fullScreenCover(isPresented: $showCameraWithPoses) {
-            CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
+            CameraWithPosesAndOverlaysView(voiceManager: voiceManager, showCountdown: .constant(false), countdownValue: $countdownValue)
                 .onAppear {
                     print("CameraWithPosesAndOverlaysView presented from Step1View")
                 }
@@ -289,6 +290,7 @@ struct Step2View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
     @State private var showCameraWithPoses: Bool = false
     @StateObject private var voiceManager = VoiceCommandManager()
+    @State private var countdownValue = 5
     
     var body: some View {
         ZStack {
@@ -344,7 +346,7 @@ struct Step2View: View {
             }
         }
         .fullScreenCover(isPresented: $showCameraWithPoses) {
-            CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
+            CameraWithPosesAndOverlaysView(voiceManager: voiceManager, showCountdown: .constant(false), countdownValue: $countdownValue)
                 .onAppear {
                     print("CameraWithPosesAndOverlaysView presented from Step2View")
                 }
@@ -362,19 +364,16 @@ struct Step3View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
     @StateObject private var voiceManager = VoiceCommandManager()
     @State private var showCameraWithPoses: Bool = false
+//    @State private var showCountdown = false
+    @Binding var showCountdown: Bool
+    @State private var countdownValue = 5
+    @StateObject private var viewModel = ViewModel()
     
     var body: some View {
+        NavigationStack {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
-                Color.black
-                    .overlay(
-                        GeometryReader { proxy in
-                            let offset = proxy.frame(in: .global).minY
-                            Color.black.opacity(min(max(offset / 100, 0), 0.7))
-                                .blur(radius: min(max(offset / 20, 0), 10))
-                        }
-                    )
-                    .ignoresSafeArea()
+                Color.black.ignoresSafeArea()
                 
                 ScrollView {
                     VStack(spacing: -30) {
@@ -404,6 +403,7 @@ struct Step3View: View {
                                 .frame(height: 300)
                                 .padding(.horizontal, 30)
                             
+                            // [to-do] Change system name here
                             VStack(alignment: .leading, spacing: 15) {
                                 HStack(spacing: 15) {
                                     Image(systemName: "mic.fill")
@@ -413,11 +413,11 @@ struct Step3View: View {
                                         .clipShape(Circle())
                                     
                                     VStack(alignment: .leading, spacing: 5) {
-                                        Text("Say \"Start Workout\"")
+                                        Text("Tap “I’m Ready” to Start Workout")
                                             .font(.headline)
                                             .foregroundColor(.white)
                                             .fixedSize(horizontal: false, vertical: true)
-                                        Text("Stand in position and say this to begin your workout")
+                                        Text("A 5-second countdown will start right after")
                                             .font(.subheadline)
                                             .foregroundColor(.gray)
                                             .fixedSize(horizontal: false, vertical: true)
@@ -434,7 +434,7 @@ struct Step3View: View {
                                         .clipShape(Circle())
                                     
                                     VStack(alignment: .leading, spacing: 5) {
-                                        Text("Say \"End Workout\"")
+                                        Text("Say \"Done Workout\"")
                                             .font(.headline)
                                             .foregroundColor(.white)
                                             .fixedSize(horizontal: false, vertical: true)
@@ -458,6 +458,8 @@ struct Step3View: View {
                     Button(action: {
                         print("I'm Ready button tapped in Step3View") // Debug print
                         showCameraWithPoses = true
+                        viewModel.initialize()
+                        showCountdown = true
                     }) {
                         Text("I'm Ready")
                             .font(.headline)
@@ -477,12 +479,21 @@ struct Step3View: View {
                 .zIndex(1)
             }
             .fullScreenCover(isPresented: $showCameraWithPoses) {
-                CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
+                CameraWithPosesAndOverlaysView(voiceManager: voiceManager, showCountdown: $showCountdown, countdownValue: $countdownValue)
                     .onAppear {
                         print("CameraWithPosesAndOverlaysView presented from Step3View") // Debug print
                     }
             }
+            // Show Countdown View as a Sheet
+//            .fullScreenCover(isPresented: $showCountdown) {
+//                CountdownView(countdown: $countdownValue, viewModel: viewModel) {
+//                    viewModel.initialize()
+//                    showCountdown = false
+//                    showCameraWithPoses = true
+//                }
+//            }
         }
+    }
         .background(Color.black)
         .ignoresSafeArea()
         .navigationBarHidden(true)

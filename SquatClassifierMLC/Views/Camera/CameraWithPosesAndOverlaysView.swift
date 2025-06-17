@@ -11,10 +11,15 @@ struct CameraWithPosesAndOverlaysView : View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel = ViewModel()
     @ObservedObject var voiceManager: VoiceCommandManager
+    @State private var navigateToSummary = false
+    @State private var showExitConfirmation = false
+    @Binding var showCountdown: Bool
+    @Binding var countdownValue: Int
 
+    
     var body: some View {
         ZStack {
-        OverlayView(count: viewModel.uiCount, actionLabel: viewModel.predictedAction) {
+            OverlayView(count: viewModel.uiCount, actionLabel: viewModel.predictedAction) {
             viewModel.onCameraButtonTapped()
         }
         .background {
@@ -32,9 +37,7 @@ struct CameraWithPosesAndOverlaysView : View {
         VStack {
             HStack {
                 Button {
-                    voiceManager.stopListening()
-                    viewModel.isWorkoutActive = false
-                    dismiss()
+                    showExitConfirmation = true
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .resizable()
@@ -44,10 +47,29 @@ struct CameraWithPosesAndOverlaysView : View {
                     
                 }
                 Spacer()
+                .alert("End Workout?", isPresented: $showExitConfirmation) {
+                    Button("End Workout", role: .destructive) {
+                        voiceManager.stopListening()
+                        viewModel.isWorkoutActive = false
+//                        navigateToSummary = true
+                        dismiss()
+                    }
+                    Button("Cancel", role: .cancel) { }
+                } message: {
+                    Text("Are you sure you want to end this workout session?")
+                }
             }
             Spacer()
         }
-    }
+            
+            if showCountdown {
+                CountdownView(countdown: $countdownValue, viewModel: viewModel) {
+                    showCountdown = false
+                    viewModel.startWorkout()
+                }
+            }
+            
+        }
         .onAppear {
             voiceManager.viewModel = viewModel
             voiceManager.requestPermission()
@@ -58,7 +80,17 @@ struct CameraWithPosesAndOverlaysView : View {
         }
         .onChange(of: voiceManager.isWorkoutRunning) { oldValue, newValue in
             viewModel.isWorkoutActive = newValue
+            
         }
+        .onReceive(voiceManager.$navigateToSummary) { value in
+            if value {
+                navigateToSummary = true
+            }
+        }
+        .navigationDestination(isPresented: $navigateToSummary) {
+            SummaryView(totalReps: viewModel.repCount, goodForm: 0, badForm: 0)
+        }
+            
 //        .onChange (of: voiceManager.lastCommand) { _, newCommand in
 //            if newCommand == "start" {
 //                viewModel.isWorkoutActive = true

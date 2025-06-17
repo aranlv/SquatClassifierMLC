@@ -9,9 +9,11 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var navigationViewModel = AppNavigationViewModel()
+//    @Binding var showCountdown: Bool
+    @State private var showCountdown: Bool = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack(alignment: .bottom) {
                 switch navigationViewModel.currentDestination {
                 case .home:
@@ -25,7 +27,7 @@ struct ContentView: View {
                                 .tag(NavigationDestination.step1)
                             Step2View(navigationViewModel: navigationViewModel)
                                 .tag(NavigationDestination.step2)
-                            Step3View(navigationViewModel: navigationViewModel)
+                            Step3View(navigationViewModel: navigationViewModel, showCountdown: $showCountdown)
                                 .tag(NavigationDestination.step3)
                         }
                         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -78,9 +80,9 @@ struct ContentView: View {
 }
 
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-            .preferredColorScheme(.dark)
-    }
-}
+//struct ContentView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ContentView()
+//            .preferredColorScheme(.dark)
+//    }
+//}

@@ -16,12 +16,12 @@ import Foundation
 @MainActor
 class ViewModel: ObservableObject {
     // MARK: Voice command
-//    @Published var isWorkoutRunning = false
+    //    @Published var isWorkoutRunning = false
     @Published var isWorkoutActive: Bool = false
     @Published var repCount: Int = 0
     var voiceManager: VoiceCommandManager?
-//    var repCountPublisher: Published<Int>.Publisher { $repCount }
-//    var predictedActionPublisher: Published<String?>.Publisher { $predictedAction }
+    //    var repCountPublisher: Published<Int>.Publisher { $repCount }
+    //    var predictedActionPublisher: Published<String?>.Publisher { $predictedAction }
     
     // MARK: UI‑bound @Published properties
     @Published var liveCameraImageAndPoses: (image: CGImage, poses: [Pose])?
@@ -49,7 +49,7 @@ class ViewModel: ObservableObject {
     // MARK: Squat‑counter state machine
     private enum SquatState { case standing, squatting, unknown }
     private var squatState: SquatState = .unknown
-//    private var repCount   = 0
+    //    private var repCount   = 0
     private var frameBuffer: [[Pose]] = []          // frames inside current rep
     private var selectedRepWindow: [[[Pose]]] = []  // last N finished reps (Upgrade A)
     
@@ -70,23 +70,30 @@ class ViewModel: ObservableObject {
     // MARK: – Main camera loop
     private func displayPoseInCamera() async throws {
         let frames = try await VideoReader.readCamera(configuration: configuration)
-        print("🎬 Camera pipeline started — awaiting frames…")
+        
         var lastTime = CFAbsoluteTimeGetCurrent()
         
         for try await frame in frames {
             if Task.isCancelled { return }
             
             // 1. Pose extraction
-            let poses = try await poseExtractor.applied(to: frame.feature)
+//            let poses = try await poseExtractor.applied(to: frame.feature)
+            
+            let allPoses = try await poseExtractor.applied(to: frame.feature)
+            let sortedPoses = allPoses.sorted{ $0.boundingBoxArea() > $1.boundingBoxArea()}
+            
+            guard let person = sortedPoses.first else { continue }
+            
+            let poses = [person]
             
             // 2. Squat state machine
-            if let person   = poses.first,
-               let hip      = person.keypoints[.leftHip]?.location,
-               let knee     = person.keypoints[.leftKnee]?.location,
-               let ankle    = person.keypoints[.leftAnkle]?.location,
-               person.keypoints[.leftHip]?.confidence ?? 0 > JointPoint.confidenceThreshold,
-               person.keypoints[.leftKnee]?.confidence ?? 0 > JointPoint.confidenceThreshold,
-               person.keypoints[.leftAnkle]?.confidence ?? 0 > JointPoint.confidenceThreshold {
+            if
+                let hip      = person.keypoints[.leftHip]?.location,
+                let knee     = person.keypoints[.leftKnee]?.location,
+                let ankle    = person.keypoints[.leftAnkle]?.location,
+                person.keypoints[.leftHip]?.confidence ?? 0 > JointPoint.confidenceThreshold,
+                person.keypoints[.leftKnee]?.confidence ?? 0 > JointPoint.confidenceThreshold,
+                person.keypoints[.leftAnkle]?.confidence ?? 0 > JointPoint.confidenceThreshold {
                 
                 let angle = calculateKneeAngle(hip: hip, knee: knee, ankle: ankle)
                 
@@ -122,7 +129,8 @@ class ViewModel: ObservableObject {
                 }
                 
                 // Accumulate current frame inside the ongoing rep
-                frameBuffer.append(poses)
+//                frameBuffer.append(poses)
+                frameBuffer.append([person])
             }
             
             // 3. UI overlay
@@ -131,60 +139,60 @@ class ViewModel: ObservableObject {
             }
             
             // 4. FPS debug
-//            let now = CFAbsoluteTimeGetCurrent()
-//            print(String(format: "Frame rate %2.2f fps", 1 / (now - lastTime)))
-//            lastTime = now
+            //            let now = CFAbsoluteTimeGetCurrent()
+            //            print(String(format: "Frame rate %2.2f fps", 1 / (now - lastTime)))
+            //            lastTime = now
         }
     }
     
     // MARK: Voice Instruction (always‑resample)
     func startWorkout() {
-            isWorkoutActive = true
-            print("🏋️‍♀️ Workout started")
-        }
-
-        func stopWorkout() {
-            isWorkoutActive = false
-            print("🛑 Workout stopped")
-        }
+        isWorkoutActive = true
+        print("🏋️‍♀️ Workout started")
+    }
+    
+    func stopWorkout() {
+        isWorkoutActive = false
+        print("🛑 Workout stopped")
+    }
     
     // MARK: Rep classification (always‑resample)
     private func classifyRep(buffer: [[Pose]]) {
         guard isWorkoutActive else { return }
         guard !buffer.isEmpty else { return }
-
+        
         let resampled = resample(buffer, to: requiredFrames)
         
         guard let mlInput = try? makeInputArray(from: resampled),
               let result = try? classifier.prediction(poses: mlInput) else { return }
-
+        
         Task { [weak self] in
             guard let self = self else { return }
-
-//            await MainActor.run {
-//                self.predictedAction = result.label
-//                print("🏷️ Rep label → \(result.label)")
-//            }
-//
-//            // Only speak if it's NOT "other_actions"
-//            if result.label != "other_actions" {
-//                let labelToSpeak = formatLabelForSpeech(result.label)
-//                let speechText = labelToSpeak // e.g., just "good", "bad toe", etc.
-//
-//                self.voiceManager?.speak(speechText)
-//            }
+            
+            //            await MainActor.run {
+            //                self.predictedAction = result.label
+            //                print("🏷️ Rep label → \(result.label)")
+            //            }
+            //
+            //            // Only speak if it's NOT "other_actions"
+            //            if result.label != "other_actions" {
+            //                let labelToSpeak = formatLabelForSpeech(result.label)
+            //                let speechText = labelToSpeak // e.g., just "good", "bad toe", etc.
+            //
+            //                self.voiceManager?.speak(speechText)
+            //            }
             // Optional: comment this out to disable speaking
-//            await MainActor.run {
-//                self.voiceManager?.speak(speechText)
-//            }
+            //            await MainActor.run {
+            //                self.voiceManager?.speak(speechText)
+            //            }
             self.predictedAction = result.label
             print("🏷️ Rep label → \(result.label)")
-
+            
             let labelToSpeak = formatLabelForSpeech(result.label)
-
+            
             // ✅ Don't speak "other actions"
             guard labelToSpeak != "unknown action" else { return }
-
+            
             let speechText = "Reps \(self.repCount), \(labelToSpeak)"
             self.voiceManager?.speak(speechText)
         }
