@@ -61,6 +61,11 @@ struct StepView: View {
                                 .foregroundColor(.lime)
                                 .frame(width: 60)
                         }
+                    } else {
+                        Text("")
+                            .font(.headline)
+                            .foregroundColor(.lime)
+                            .frame(width: 60)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -221,9 +226,9 @@ struct Step2View: View {
                 }
             }
             
-            NavigationLink(
-                destination: Step3View(navigationViewModel: navigationViewModel)
-            ) {
+            Button {
+                navigationViewModel.navigate(to: .step3)
+            } label: {
                 Text("Next")
                     .font(.headline)
                     .foregroundColor(.black)
@@ -232,17 +237,17 @@ struct Step2View: View {
                     .background(Color("Lime", bundle: nil))
                     .cornerRadius(12)
                     .padding(.horizontal, 30)
-                    .shadow(radius: 5) // Shadow for the button
-                    .padding(.bottom, 60) // Bottom padding for space
+                    .shadow(radius: 5)
+                    .padding(.bottom, 60)
             }
-            .background(Color.black.opacity(1)) // Background color for the navigation link area
-            .zIndex(1) // Ensure it's properly layered on top
+            .background(Color.black.opacity(1))
+            .zIndex(1)
         }
         .background(Color.black)
         .ignoresSafeArea()
         .navigationBarHidden(true)
         .onAppear {
-            print("Step2View appeared") // Debug print
+            print("Step2View appeared")
         }
     }
 }
@@ -352,11 +357,11 @@ struct Step3View: View {
                         .background(Color("Lime", bundle: nil))
                         .cornerRadius(12)
                         .padding(.horizontal, 30)
-                        .shadow(radius: 5) // Shadow for the button
-                        .padding(.bottom, 60) // Bottom padding for space
+                        .shadow(radius: 5)
+                        .padding(.bottom, 60)
                 }
-                .background(Color.black.opacity(1)) // Background color for the navigation link area
-                .zIndex(1) // Ensure it's properly layered on top
+                .background(Color.black.opacity(1))
+                .zIndex(1)
             }
         }
         .background(Color.black)
