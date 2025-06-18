@@ -85,7 +85,14 @@ struct SummaryView: View {
                 .padding()
                 .cornerRadius(16)
                 
-                Spacer()
+//                Spacer()
+
+                Text("Predictions may be imperfect and not always be accurate.")
+                    .foregroundColor(.white)
+                    .opacity(0.7)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
+                    .padding(.vertical, 40)
                 
                 // Start Again Button
                 NavigationLink(
