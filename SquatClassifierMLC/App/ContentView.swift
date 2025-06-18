@@ -60,10 +60,16 @@ struct ContentView: View {
                                 
                                 Spacer()
                                 
-                                Text("")
-                                    .font(.headline)
-                                    .foregroundColor(.clear)
-                                    .frame(width: 60)
+                                if navigationViewModel.currentDestination != .step3 {
+                                    NavigationLink(
+                                        destination: CameraView(navigationViewModel: navigationViewModel)
+                                    ) {
+                                        Text("Skip")
+                                            .font(.headline)
+                                            .foregroundColor(.lime)
+                                            .frame(width: 60)
+                                    }
+                                }
                             }
                             .padding(.horizontal, 20)
                             .background(
