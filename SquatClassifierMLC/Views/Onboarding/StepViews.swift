@@ -7,6 +7,70 @@
 
 import SwiftUI
 
+struct StepView: View {
+    @ObservedObject var navigationViewModel: AppNavigationViewModel
+    
+    var body: some View {
+        ZStack(alignment: .top) {
+            TabView(selection: $navigationViewModel.currentDestination) {
+                Step1View(navigationViewModel: navigationViewModel)
+                    .tag(NavigationDestination.step1)
+                Step2View(navigationViewModel: navigationViewModel)
+                    .tag(NavigationDestination.step2)
+                Step3View(navigationViewModel: navigationViewModel)
+                    .tag(NavigationDestination.step3)
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .ignoresSafeArea(edges: .bottom)
+            
+            VStack {
+                HStack {
+                    Button(action: {
+                        navigationViewModel.navigate(to: .home)
+                    }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.white)
+                            .font(.title2)
+                            .padding()
+                            .background(Color.black.opacity(0.3))
+                            .clipShape(Circle())
+                    }
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 8) {
+                        Capsule()
+                            .fill(navigationViewModel.currentDestination == .step1 ? Color.white : Color.white.opacity(0.3))
+                            .frame(width: 16, height: 8)
+                        Capsule()
+                            .fill(navigationViewModel.currentDestination == .step2 ? Color.white : Color.white.opacity(0.3))
+                            .frame(width: 16, height: 8)
+                        Capsule()
+                            .fill(navigationViewModel.currentDestination == .step3 ? Color.white : Color.white.opacity(0.3))
+                            .frame(width: 16, height: 8)
+                    }
+                    
+                    Spacer()
+                    
+                    if navigationViewModel.currentDestination != .step3 {
+                        NavigationLink(
+                            destination: CameraView(navigationViewModel: navigationViewModel)
+                        ) {
+                            Text("Skip")
+                                .font(.headline)
+                                .foregroundColor(.lime)
+                                .frame(width: 60)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .background(
+                    Color.black)
+            }
+        }
+    }
+}
+
 struct Step1View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
     

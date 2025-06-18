@@ -17,6 +17,7 @@ class SquatViewModel: ObservableObject {
     @Published var renderedImage: UIImage?
     @Published var repCount: Int = 0
     @Published var currentAngle: Double = 0.0
+    @Published var goodFormCount: Int = 0 // to be passed to summary view
     
     private var videoCapture: VideoCapture!
     private var videoProcessingChain: VideoProcessingChain!
@@ -173,6 +174,7 @@ class SquatViewModel: ObservableObject {
             actionLabel       = pred.label
             confidenceLabel   = pred.confidenceString ?? ""
             print("💡 Rep \(repCount) form → \(pred.label) (\(pred.confidenceString ?? ""))")
+            if pred.label == "good" { goodFormCount += 1 }
             updateUI(with: pred)
         }
         

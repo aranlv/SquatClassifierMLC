@@ -25,7 +25,8 @@ struct CameraView: View {
                     viewModel.toggleCamera()
                 }, stopAction: {
                     viewModel.stopCamera()
-                    navigationViewModel.navigate(to: .home)
+                    navigationViewModel.navigate(to: .summary(total:viewModel.repCount,
+                                                              good: viewModel.goodFormCount))
                 })
                 
                 if showCountdown {
@@ -54,8 +55,8 @@ struct CameraView: View {
     }
 }
 
-struct CameraView_Previews: PreviewProvider {
-    static var previews: some View {
-        CameraView()
-    }
-}
+//struct CameraView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        CameraView()
+//    }
+//}
