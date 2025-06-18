@@ -10,6 +10,7 @@ import SwiftUI
 struct CameraView: View {
     @StateObject var viewModel = SquatViewModel()
     @ObservedObject var navigationViewModel = AppNavigationViewModel()
+    @State private var showCountdown = true
     
     var body: some View {
         ZStack {
@@ -19,20 +20,28 @@ struct CameraView: View {
                     .scaledToFit()
                     .aspectRatio(contentMode: .fill)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .cornerRadius(10)
+                
+                OverlayView(viewModel: viewModel, flip: {
+                    viewModel.toggleCamera()
+                }, stopAction: {
+                    viewModel.stopCamera()
+                    navigationViewModel.navigate(to: .home)
+                })
+                
+                if showCountdown {
+                    CountdownView(isShowing: $showCountdown)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea()
+                        .zIndex(2)
+                        .transition(.opacity)
+                }
+                
             } else {
                 Text("Waiting for camera feed...")
                     .font(.headline)
             }
-            
-            OverlayView(viewModel: viewModel, flip: {
-                viewModel.toggleCamera()
-            }, stopAction: {
-                viewModel.stopCamera()
-                navigationViewModel.navigate(to: .home)
-            })
         }
-        .edgesIgnoringSafeArea([.top, .bottom])
+        .edgesIgnoringSafeArea(.all)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             viewModel.startCamera()

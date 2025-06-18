@@ -41,12 +41,14 @@ struct OverlayView: View {
                 .bubbleBackground()
                 
                 // Action Label
-                Text(viewModel.actionLabel)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .opacity(0.60)
-                    .bubbleBackground()
+                if viewModel.actionLabel != "Start" {
+                    Text(viewModel.actionLabel)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .opacity(0.60)
+                        .bubbleBackground()
+                }
                 
                 Spacer()
             }

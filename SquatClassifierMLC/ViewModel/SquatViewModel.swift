@@ -12,7 +12,7 @@ import UIKit
 
 @MainActor
 class SquatViewModel: ObservableObject {
-    @Published var actionLabel: String = "Go!"
+    @Published var actionLabel: String = "Starting Up"
     @Published var confidenceLabel: String = "Observing..."
     @Published var renderedImage: UIImage?
     @Published var repCount: Int = 0
@@ -95,7 +95,7 @@ class SquatViewModel: ObservableObject {
         case "bad_toe":
             return "Knees Over Toes"
         default:
-            return "Go!"
+            return rawLabel
         }
     }
     
