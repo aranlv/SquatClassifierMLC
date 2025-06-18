@@ -220,11 +220,12 @@ struct Step3View: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity)
                                 .padding(.horizontal, 30)
+                                .padding(.top, -10)
                             
                             Image("step3")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: .infinity, height: 300)
+                                .frame(maxWidth: .infinity, maxHeight: 300)
                                 .padding(.horizontal, 30)
                             
                             VStack(alignment: .leading, spacing: 15) {
