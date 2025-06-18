@@ -1,47 +1,57 @@
-/*
- See LICENSE folder for this sample’s licensing information.
- 
- Abstract:
- The app's overlay view.
- */
-
+///*
+// See LICENSE folder for this sample’s licensing information.
+//
+// Abstract:
+// The app's overlay view.
+// */
+//
 import SwiftUI
 
 /// - Tag: OverlayView
 struct OverlayView: View {
     
-    let count: Float
-    let actionLabel: String?
+    @ObservedObject var viewModel: SquatViewModel
     let flip: () -> Void
+    let stopAction: () -> Void
     
     var body: some View {
         VStack {
-            // Top‑left bubble – Reps
+            // Action label and reps
             HStack {
-                Spacer()
-                VStack(spacing: 4) {
-                    Text("Reps")
+                // Exit button
+                Button(action: stopAction) {
+                    Image(systemName: "xmark")
+                        .foregroundColor(.white)
+                        .font(.title2)
+                        .padding()
+                        .clipShape(Circle())
+                }
+                
+                // Reps
+                HStack(spacing: 4) {
+                    Text("Rep")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    Text("\(viewModel.repCount)")
                         .font(.title2).bold()
                         .foregroundColor(.white)
-                    Text("\(count, specifier: "%2.0f")")
-                        .font(.system(size: 40, weight: .heavy))
-                        .foregroundColor(.green)
                 }
+                .opacity(0.60)
                 .bubbleBackground()
                 
-                // Middle bubble – action label
-                if let label = actionLabel {
-                    Spacer(minLength: 12)
-                    Text(label)
-                        .font(.title)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.yellow)
-                        .bubbleBackground()
-                        .transition(.opacity)
-                }
+                // Action Label
+                Text(viewModel.actionLabel)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .opacity(0.60)
+                    .bubbleBackground()
+                
                 Spacer()
             }
-            .padding(.top, 16)
+            .padding(.top, 25)
+            
             
             Spacer()
             
@@ -56,7 +66,7 @@ struct OverlayView: View {
                 Spacer()
             }
         }
-        .padding()
+        .padding(30)
     }
 }
 
@@ -66,17 +76,17 @@ extension View {
         self.padding()
             .background {
                 RoundedRectangle(cornerRadius: 10)
-                    .foregroundColor(.primary)
-                    .opacity(0.4)
+                    .foregroundColor(Color(red: 2/255, green: 2/255, blue: 2/255, opacity: 0.6))
             }
     }
 }
 
-struct OverlayView_Previews: PreviewProvider {
-    static var previews: some View {
-        ZStack {
-            Color.red.opacity(0.3)
-            OverlayView(count: 3, actionLabel: "Squat", flip: {})
-        }
-    }
-}
+//struct OverlayView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ZStack {
+//            Color.red.opacity(0.3)
+//            OverlayView(
+//        }
+//        .edgesIgnoringSafeArea([.top, .bottom])
+//    }
+//}

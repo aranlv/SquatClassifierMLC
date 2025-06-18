@@ -29,6 +29,7 @@ struct ContentView: View {
                                 .tag(NavigationDestination.step3)
                         }
                         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                        .ignoresSafeArea(edges: .bottom)
                         
                         VStack {
                             HStack {
@@ -66,9 +67,7 @@ struct ContentView: View {
                             }
                             .padding(.horizontal, 20)
                             .background(
-                                Color.black.opacity(0.7)
-                                    .blur(radius: 10)
-                                    .ignoresSafeArea(edges: .top))
+                                Color.black)
                         }
                     }
                 }
@@ -81,6 +80,6 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(.light)
     }
 }

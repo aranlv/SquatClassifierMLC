@@ -1,0 +1,318 @@
+//
+//  StepViews.swift
+//  SquatClassifierMLC
+//
+//  Created by Aretha Natalova Wahyudi on 18/06/25.
+//
+
+import SwiftUI
+
+struct Step1View: View {
+    @ObservedObject var navigationViewModel: AppNavigationViewModel
+    
+    var body: some View {
+        ZStack {
+            ScrollView {
+                VStack(spacing: -30) {
+                    Spacer().frame(height: 100)
+                    
+                    VStack(spacing: 15) {
+                        Text("Step 1")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 30)
+                        
+                        Text("Prepare yourself for more accurate tracking")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 30)
+                        
+                        Image("step1")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 300)
+                            .padding(.horizontal, 30)
+                        
+                        VStack(alignment: .leading, spacing: 15) {
+                            HStack(spacing: 15) {
+                                Image(systemName: "tshirt.fill")
+                                    .foregroundColor(Color("Lime", bundle: nil))
+                                    .frame(width: 30, height: 30)
+                                    .background(Color.green.opacity(0.2))
+                                    .clipShape(Circle())
+                                
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text("Wear Fitted Clothing")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Text("Avoid baggy outfits for more accurate tracking")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                
+                                Spacer()
+                            }
+                            
+                            HStack(spacing: 15) {
+                                Image(systemName: "headphones")
+                                    .foregroundColor(Color("Lime", bundle: nil))
+                                    .frame(width: 30, height: 30)
+                                    .background(Color.green.opacity(0.2))
+                                    .clipShape(Circle())
+                                
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text("Use earphone")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                    //                                        .fixedSize(horizontal: false, virtual: true)
+                                    Text("For accurate voice commands and better real-time feedback")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                
+                                Spacer()
+                            }
+                        }
+                        .padding(.horizontal, 30)
+                        
+                        NavigationLink(
+                            destination: CameraView(navigationViewModel: navigationViewModel),
+                        ) {
+                            Text("Skip")
+                                .font(.headline)
+                                .foregroundColor(Color("Lime", bundle: nil))
+                                .frame(maxWidth: .infinity)
+                                .background(Color.black.opacity(0.3))
+                                .cornerRadius(12)
+                                .padding(.horizontal, 30)
+                        }
+                        .padding(.bottom, 10)
+                        .padding(.top, 10)
+                    }
+                }
+            }
+        }
+        .background(Color.black)
+        .ignoresSafeArea()
+        .navigationBarHidden(true)
+        .onAppear {
+            print("Step1View appeared") // Debug print
+        }
+    }
+}
+
+struct Step2View: View {
+    @ObservedObject var navigationViewModel: AppNavigationViewModel
+    
+    var body: some View {
+        ZStack {
+            ScrollView {
+                VStack(spacing: -30) {
+                    Spacer().frame(height: 100)
+                    
+                    VStack(spacing: 15) {
+                        Text("Step 2")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 30)
+                        Text("Place your phone on provided tripod")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 30)
+                        
+                        Image("step2")
+                            .resizable()
+                            .scaledToFit()
+                            .padding(.horizontal, 30)
+                        
+                        Text("Set your phone on the tripod and position yourself at a 45° angle")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 30)
+                        
+                        NavigationLink(
+                            destination: CameraView(navigationViewModel: navigationViewModel),
+                        ) {
+                            Text("Skip")
+                                .font(.headline)
+                                .foregroundColor(Color("Lime", bundle: nil))
+                                .frame(maxWidth: .infinity)
+                                .background(Color.black.opacity(0.3))
+                                .cornerRadius(12)
+                                .padding(.horizontal, 30)
+                        }
+                        .padding(.bottom, 10)
+                        .padding(.top, 10)
+                    }
+                }
+            }
+        }
+        .background(Color.black)
+        .ignoresSafeArea()
+        .navigationBarHidden(true)
+        .onAppear {
+            print("Step2View appeared") // Debug print
+        }
+    }
+}
+
+struct Step3View: View {
+    @ObservedObject var navigationViewModel: AppNavigationViewModel
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .bottom) {
+                Color.black
+                    .overlay(
+                        GeometryReader { proxy in
+                            let offset = proxy.frame(in: .global).minY
+                            Color.black.opacity(min(max(offset / 100, 0), 0.7))
+                                .blur(radius: min(max(offset / 20, 0), 10))
+                        }
+                    )
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: -30) {
+                        Spacer().frame(height: 100)
+                        
+                        VStack(spacing: 15) {
+                            Text("Step 3")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity)
+                                .padding(.horizontal, 30)
+                            
+                            Text("Voice commands to start and end your workout")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity)
+                                .padding(.horizontal, 30)
+                            
+                            Image("step3")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 300)
+                                .padding(.horizontal, 30)
+                            
+                            VStack(alignment: .leading, spacing: 15) {
+                                HStack(spacing: 15) {
+                                    Image(systemName: "mic.fill")
+                                        .foregroundColor(Color("Lime", bundle: nil))
+                                        .frame(width: 30, height: 30)
+                                        .background(Color.green.opacity(0.2))
+                                        .clipShape(Circle())
+                                    
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text("Say \"Start Workout\"")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        Text("Stand in position and say this to begin your workout")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    
+                                    Spacer()
+                                }
+                                
+                                HStack(spacing: 15) {
+                                    Image(systemName: "mic.fill")
+                                        .foregroundColor(Color("Lime", bundle: nil))
+                                        .frame(width: 30, height: 30)
+                                        .background(Color.green.opacity(0.2))
+                                        .clipShape(Circle())
+                                    
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text("Say \"End Workout\"")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        Text("Say this when you finish your workout or complete a set")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    
+                                    Spacer()
+                                }
+                            }
+                            .padding(.horizontal, 30)
+                        }
+                        
+                        Spacer().frame(height: 150)
+                    }
+                }
+                
+                NavigationLink(
+                    destination: CameraView(navigationViewModel: navigationViewModel)
+                ) {
+                    Text("I'm Ready")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color("Lime", bundle: nil))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 30)
+                        .shadow(radius: 5) // Shadow for the button
+                        .padding(.bottom, 60) // Bottom padding for space
+                }
+                .background(Color.black.opacity(1)) // Background color for the navigation link area
+                .zIndex(1) // Ensure it's properly layered on top
+            }
+        }
+        .background(Color.black)
+        .ignoresSafeArea()
+        .navigationBarHidden(true)
+        .onAppear {
+            print("Step3View appeared") // Debug print
+        }
+    }
+}
+
+struct Step2View_Previews: PreviewProvider {
+    static var previews: some View {
+        Step2View(navigationViewModel: AppNavigationViewModel())
+            .preferredColorScheme(.light)
+    }
+}
+
+struct Step1View_Previews: PreviewProvider {
+    static var previews: some View {
+        Step1View(navigationViewModel: AppNavigationViewModel())
+            .preferredColorScheme(.light)
+    }
+}
+
+struct Step3View_Previews: PreviewProvider {
+    static var previews: some View {
+        Step3View(navigationViewModel: AppNavigationViewModel())
+            .preferredColorScheme(.light)
+    }
+}
