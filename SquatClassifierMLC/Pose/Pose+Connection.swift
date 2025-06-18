@@ -64,16 +64,14 @@ extension Pose {
 
             // Set the line's thickness.
             context.setLineWidth(Connection.width * scale)
+            
+            // Change color
+            context.setStrokeColor(UIColor.lime.cgColor)
 
             // Draw the line.
             context.move(to: start)
             context.addLine(to: end)
-            context.replacePathWithStrokedPath()
-            context.clip()
-            context.drawLinearGradient(Connection.gradient,
-                                       start: start,
-                                       end: end,
-                                       options: .drawsAfterEndLocation)
+            context.strokePath()
         }
     }
 }

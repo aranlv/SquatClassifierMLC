@@ -81,11 +81,11 @@ struct Pose {
         }
 
         // Draw the landmarks on top of the lines' endpoints.
-        landmarks.forEach { landmark in
-            landmark.drawToContext(context,
-                                   applying: transform,
-                                   at: scale)
-        }
+//        landmarks.forEach { landmark in
+//            landmark.drawToContext(context,
+//                                   applying: transform,
+//                                   at: scale)
+//        }
     }
 
     /// Adjusts the landmarks radius and connection thickness when the pose draws

@@ -107,6 +107,9 @@ class SquatViewModel: ObservableObject {
         rendererFormat.scale = 1.0
         let renderer = UIGraphicsImageRenderer(size: frameSize, format: rendererFormat)
         
+        let mainPose = poses?
+            .max(by: { $0.area < $1.area })
+        
         let image = renderer.image { context in
             let cgContext = context.cgContext
             let inverse = cgContext.ctm.inverted()
@@ -116,7 +119,7 @@ class SquatViewModel: ObservableObject {
             
             let transform = CGAffineTransform(scaleX: frameSize.width, y: frameSize.height)
             
-            poses?.forEach { pose in
+            if let pose = mainPose {
                 pose.drawWireframeToContext(cgContext, applying: transform)
             }
         }
@@ -132,7 +135,7 @@ class SquatViewModel: ObservableObject {
         guard let hip = pose.landmarks.first(where: { $0.name == .leftHip })?.location,
               let knee = pose.landmarks.first(where: { $0.name == .leftKnee })?.location,
               let ankle = pose.landmarks.first(where: { $0.name == .leftAnkle })?.location,
-        let shoulder = pose.landmarks.first(where: {$0.name == .leftShoulder})?.location else { return }
+              let shoulder = pose.landmarks.first(where: {$0.name == .leftShoulder})?.location else { return }
         
         let angle = calculateKneeAngle(hip: hip, knee: knee, ankle: ankle)
         
