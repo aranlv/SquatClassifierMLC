@@ -11,7 +11,7 @@ struct Step1View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
     
     var body: some View {
-        ZStack {
+        ZStack (alignment: .bottom) {
             ScrollView {
                 VStack(spacing: -30) {
                     Spacer().frame(height: 100)
@@ -42,11 +42,10 @@ struct Step1View: View {
                         
                         VStack(alignment: .leading, spacing: 15) {
                             HStack(spacing: 15) {
-                                Image(systemName: "tshirt.fill")
-                                    .foregroundColor(Color("Lime", bundle: nil))
-                                    .frame(width: 30, height: 30)
-                                    .background(Color.green.opacity(0.2))
-                                    .clipShape(Circle())
+                                Image("wear")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 70, height: 70)
                                 
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text("Wear Fitted Clothing")
@@ -63,11 +62,10 @@ struct Step1View: View {
                             }
                             
                             HStack(spacing: 15) {
-                                Image(systemName: "headphones")
-                                    .foregroundColor(Color("Lime", bundle: nil))
-                                    .frame(width: 30, height: 30)
-                                    .background(Color.green.opacity(0.2))
-                                    .clipShape(Circle())
+                                Image("earphone")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 70, height: 70)
                                 
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text("Use earphone")
@@ -83,24 +81,28 @@ struct Step1View: View {
                                 Spacer()
                             }
                         }
+                        .frame(width: 320)
                         .padding(.horizontal, 30)
-                        
-                        NavigationLink(
-                            destination: CameraView(navigationViewModel: navigationViewModel),
-                        ) {
-                            Text("Skip")
-                                .font(.headline)
-                                .foregroundColor(Color("Lime", bundle: nil))
-                                .frame(maxWidth: .infinity)
-                                .background(Color.black.opacity(0.3))
-                                .cornerRadius(12)
-                                .padding(.horizontal, 30)
-                        }
-                        .padding(.bottom, 10)
-                        .padding(.top, 10)
                     }
                 }
             }
+            
+            Button {
+                navigationViewModel.navigate(to: .step2)
+            } label: {
+                Text("Next")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color("Lime", bundle: nil))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 30)
+                    .shadow(radius: 5)
+                    .padding(.bottom, 60)
+            }
+            .background(Color.black.opacity(1))
+            .zIndex(1)
         }
         .background(Color.black)
         .ignoresSafeArea()
@@ -115,7 +117,7 @@ struct Step2View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
     
     var body: some View {
-        ZStack {
+        ZStack (alignment: .bottom) {
             ScrollView {
                 VStack(spacing: -30) {
                     Spacer().frame(height: 100)
@@ -148,23 +150,26 @@ struct Step2View: View {
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 30)
-                        
-                        NavigationLink(
-                            destination: CameraView(navigationViewModel: navigationViewModel),
-                        ) {
-                            Text("Skip")
-                                .font(.headline)
-                                .foregroundColor(Color("Lime", bundle: nil))
-                                .frame(maxWidth: .infinity)
-                                .background(Color.black.opacity(0.3))
-                                .cornerRadius(12)
-                                .padding(.horizontal, 30)
-                        }
-                        .padding(.bottom, 10)
-                        .padding(.top, 10)
                     }
                 }
             }
+            
+            NavigationLink(
+                destination: Step3View(navigationViewModel: navigationViewModel)
+            ) {
+                Text("Next")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color("Lime", bundle: nil))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 30)
+                    .shadow(radius: 5) // Shadow for the button
+                    .padding(.bottom, 60) // Bottom padding for space
+            }
+            .background(Color.black.opacity(1)) // Background color for the navigation link area
+            .zIndex(1) // Ensure it's properly layered on top
         }
         .background(Color.black)
         .ignoresSafeArea()
@@ -216,23 +221,22 @@ struct Step3View: View {
                             Image("step3")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(height: 300)
+                                .frame(width: .infinity, height: 300)
                                 .padding(.horizontal, 30)
                             
                             VStack(alignment: .leading, spacing: 15) {
                                 HStack(spacing: 15) {
-                                    Image(systemName: "mic.fill")
-                                        .foregroundColor(Color("Lime", bundle: nil))
-                                        .frame(width: 30, height: 30)
-                                        .background(Color.green.opacity(0.2))
-                                        .clipShape(Circle())
+                                    Image("startwo")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 70, height: 70)
                                     
                                     VStack(alignment: .leading, spacing: 5) {
-                                        Text("Say \"Start Workout\"")
+                                        Text("Tap \"I'm Ready\"")
                                             .font(.headline)
                                             .foregroundColor(.white)
                                             .fixedSize(horizontal: false, vertical: true)
-                                        Text("Stand in position and say this to begin your workout")
+                                        Text("Tap to start, and make sure your whole body is in frame")
                                             .font(.subheadline)
                                             .foregroundColor(.gray)
                                             .fixedSize(horizontal: false, vertical: true)
@@ -242,18 +246,17 @@ struct Step3View: View {
                                 }
                                 
                                 HStack(spacing: 15) {
-                                    Image(systemName: "mic.fill")
-                                        .foregroundColor(Color("Lime", bundle: nil))
-                                        .frame(width: 30, height: 30)
-                                        .background(Color.green.opacity(0.2))
-                                        .clipShape(Circle())
+                                    Image("endwo")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 70, height: 70)
                                     
                                     VStack(alignment: .leading, spacing: 5) {
-                                        Text("Say \"End Workout\"")
+                                        Text("Tap X or Say \"Finish\"")
                                             .font(.headline)
                                             .foregroundColor(.white)
                                             .fixedSize(horizontal: false, vertical: true)
-                                        Text("Say this when you finish your workout or complete a set")
+                                        Text("Say “Finish” or Tap (X) button when you end your workout")
                                             .font(.subheadline)
                                             .foregroundColor(.gray)
                                             .fixedSize(horizontal: false, vertical: true)
@@ -262,6 +265,7 @@ struct Step3View: View {
                                     Spacer()
                                 }
                             }
+                            .frame(width: 320)
                             .padding(.horizontal, 30)
                         }
                         

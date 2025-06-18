@@ -119,7 +119,6 @@ class SquatViewModel: ObservableObject {
         self.renderedImage = image
         
         if let poses = poses, !poses.isEmpty {
-            //            calculateBicepCurlAngle(from: poses.first!)
             detectRep(from: poses.first!)
         }
     }
@@ -143,8 +142,6 @@ class SquatViewModel: ObservableObject {
             case .squatting:
                 if angle > kneeUpThreshold {
                     squatState = .standing
-//                    repCount += 1
-//                    print("✅ REP \(repCount) counted")
                     onRepCompleted()
                     
                 }
