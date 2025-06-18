@@ -56,7 +56,6 @@ struct CameraWithPosesAndOverlaysView : View {
             VStack {
                 HStack {
                     Button {
-                        showExitAlert = true
                         voiceManager.stopListening()
                         viewModel.isWorkoutActive = false
                         if skipAlert {
@@ -77,7 +76,7 @@ struct CameraWithPosesAndOverlaysView : View {
             Spacer()
         }
     }
-        .alert("End Workout?", isPresented: $showExitAlert) {
+        .alert("End Workout", isPresented: $showExitAlert) {
                     Button("End Workout", role: .destructive) {
                         voiceManager.stopListening()
                         viewModel.isWorkoutActive = false
@@ -97,6 +96,9 @@ struct CameraWithPosesAndOverlaysView : View {
         }
         .onChange(of: voiceManager.isWorkoutRunning) { _, isRunning in
             viewModel.isWorkoutActive = isRunning
+        }
+        .onDisappear {
+            voiceManager.stopSpeaking()
         }
         .navigationDestination(isPresented: $viewModel.navigateToSummary) {
             SummaryView(
@@ -126,15 +128,19 @@ struct CameraWithPosesAndOverlaysView : View {
 //            voiceManager.speak(spokenText)
 //                }
     private func startCountdown() {
-            Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+            countdownValue = 5
+            Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { timer in
                 if countdownValue > 1 {
                     countdownValue -= 1
+                    voiceManager.speakCountdown(number: countdownValue)
                 } else {
                     timer.invalidate()
                     showCountdown = false
                     
                     Task { @MainActor in
                         viewModel.isWorkoutActive = true
+                        voiceManager.isWorkoutRunning = true
+                        voiceManager.speakStartWorkout()
                     }
                 }
             }

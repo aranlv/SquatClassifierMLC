@@ -138,6 +138,8 @@ struct SummaryView: View {
                 // Start Again Button
                 Button(action: {
                     print("Tapped")
+                    onRestart()
+                    navigationViewModel.restartFromSummary = true
                     navigationViewModel.navigate(to: .step3)
                 }) {
                     Text("Start Again")

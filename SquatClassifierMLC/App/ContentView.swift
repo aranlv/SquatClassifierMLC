@@ -26,6 +26,7 @@ struct ContentView: View {
                             Step2View(navigationViewModel: navigationViewModel)
                                 .tag(NavigationDestination.step2)
                             Step3View(navigationViewModel: navigationViewModel)
+                                .id(navigationViewModel.restartFromSummary ? AnyHashable(UUID()) : AnyHashable("step3"))
                                 .tag(NavigationDestination.step3)
                         }
                         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))

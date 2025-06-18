@@ -8,41 +8,30 @@
 import Foundation
 import AVFoundation
 import Speech
-//import Combine
 
 class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegate, AVSpeechSynthesizerDelegate {
+    
+    // MARK: - Published Properties
     @Published var isWorkoutRunning: Bool = false
     @Published var lastCommand: String = ""
     @Published var isListening: Bool = false
     weak var viewModel: ViewModel?
     
-//    private var cancellables = Set<AnyCancellable>()
+    // MARK: - Private Properties
     private var lastRecognizedPhrase: String = ""
-
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     private let audioEngine = AVAudioEngine()
     private let speechSynthesizer = AVSpeechSynthesizer()
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
 
+    // MARK: - Init
     override init() {
         super.init()
         speechSynthesizer.delegate = self
     }
 
-//    @MainActor
-//    func observe(viewModel: ViewModel) {
-//            // Speak prediction every time it changes
-//            viewModel.predictedActionPublisher
-//                .compactMap { $0 }
-//                .sink { [weak self] label in
-//                    guard let self = self, viewModel.repCount > 0 else { return }
-//                    if label == "other_actions" { return } // Skip garbage
-//                    self.speak("Reps \(viewModel.repCount), \(label.replacingOccurrences(of: "_", with: " "))")
-//                }
-//                .store(in: &cancellables)
-//    }
-    
+    // MARK: - Permissions
     func requestPermission() {
         SFSpeechRecognizer.requestAuthorization { status in
             DispatchQueue.main.async {
@@ -51,6 +40,7 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
         }
     }
 
+    // MARK: - Listening
     func startListening() {
         stopListening()
         isListening = true
@@ -73,52 +63,67 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
         audioEngine.prepare()
         try? audioEngine.start()
 
-        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { result, _ in
-            guard let result = result else { return }
-            let command = result.bestTranscription.formattedString.lowercased()
-            print("🗣️ Heard: \(command)")
+        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { result, error in
+            if let result = result {
+                let command = result.bestTranscription.formattedString.lowercased()
+                print("🗣️ Heard: \(command)")
 
-            // Prevent repeats
-                        guard command != self.lastRecognizedPhrase else { return }
-                        self.lastRecognizedPhrase = command
+                guard command != self.lastRecognizedPhrase else { return }
+                self.lastRecognizedPhrase = command
 
-                        print("🗣️ Heard: \(command)")
+                // ✅ Listen only for "finish"
+                if command.contains("finish") && self.isWorkoutRunning {
+                    self.isWorkoutRunning = false
 
-                        if command.contains("start workout") && !self.isWorkoutRunning {
-                            self.isWorkoutRunning = true
-                            self.speak("Workout started")
-                            self.lastCommand = "start"
-                            Task { @MainActor in
-                                self.viewModel?.startWorkout()
-                                }
-                            self.lastRecognizedPhrase = ""
-                        } else if command.contains("done workout") && self.isWorkoutRunning {
-                            self.isWorkoutRunning = false
-                            self.speak("Workout ended")
-                            //                            self.stopListening()
-                            
-                            Task { @MainActor in
-                                self.viewModel?.stopWorkout()
-                                self.viewModel?.repCount = 0
-                                self.viewModel?.uiCount = 0
-                                self.viewModel?.navigateToSummary = true 
-                            }
-                            
-                            self.lastRecognizedPhrase = "" // Allow future re-triggers
-                        }
+                    Task { @MainActor in
+                        self.viewModel?.stopWorkout()
+                        self.viewModel?.repCount = 0
+                        self.viewModel?.uiCount = 0
+                        self.viewModel?.navigateToSummary = true
+                    }
+
+                    self.lastRecognizedPhrase = "" // Reset for next command
+                }
+
+                // 🔁 Restart recognition if final result
+                if result.isFinal {
+                    print("🔁 Speech result is final — restarting recognition")
+                    self.restartRecognitionAfterDelay()
+                }
+            } else if let error = error {
+                print("❌ Speech error: \(error.localizedDescription)")
+                self.restartRecognitionAfterDelay()
+            }
+        }
+    }
+
+    private func restartRecognitionAfterDelay() {
+        stopListening()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.startListening()
         }
     }
 
     func stopListening() {
         isListening = false
-        audioEngine.stop()
-        audioEngine.inputNode.removeTap(onBus: 0)
+
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
+
         recognitionRequest?.endAudio()
+        recognitionRequest = nil
+
         recognitionTask?.cancel()
         recognitionTask = nil
-        recognitionRequest = nil
     }
 
+    func stopSpeaking() {
+        speechSynthesizer.stopSpeaking(at: .immediate)
+    }
+
+    // MARK: - Speech
     func speak(_ text: String) {
         print("📢 Speaking: \(text)")
         let utterance = AVSpeechUtterance(string: text)
@@ -126,5 +131,18 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
         utterance.rate = 0.5
         speechSynthesizer.speak(utterance)
     }
-    
+
+    func speakCountdown(number: Int) {
+        let utterance = AVSpeechUtterance(string: "\(number)")
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = 0.5
+        speechSynthesizer.speak(utterance)
+    }
+
+    func speakStartWorkout() {
+        let utterance = AVSpeechUtterance(string: "GO")
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = 0.6
+        speechSynthesizer.speak(utterance)
+    }
 }

@@ -363,6 +363,9 @@ struct Step3View: View {
     @StateObject private var voiceManager = VoiceCommandManager()
     @State private var showCameraWithPoses: Bool = false
     
+    @State private var showCountdown = false
+    @State private var countdownValue = 5
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
@@ -479,10 +482,29 @@ struct Step3View: View {
             .fullScreenCover(isPresented: $showCameraWithPoses) {
                 NavigationStack {
                     CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
+                        .onAppear {
+                                    print("✅ CameraWithPosesAndOverlaysView presented from Step3View")
+                            if navigationViewModel.restartFromSummary {
+                                    navigationViewModel.restartFromSummary = false
+                                    showCountdown = true
+                                    
+                                    // Delay to let SwiftUI layout finish before showing camera
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        showCameraWithPoses = true
+                                    }
+                                }
+                                }
                         .environmentObject(navigationViewModel)
                 }
                     .onAppear {
                         print("CameraWithPosesAndOverlaysView presented from Step3View") // Debug print
+                    }
+                    .onChange(of: navigationViewModel.restartFromSummary) { _, newValue in
+                        if newValue {
+                            showCameraWithPoses = true
+                            navigationViewModel.restartFromSummary = false
+                            print("🎬 Restart triggered from SummaryView")
+                        }
                     }
             }
         }

@@ -20,6 +20,7 @@ enum NavigationDestination: Equatable {
 class AppNavigationViewModel: ObservableObject {
     @Published var currentDestination: NavigationDestination = .home
     @Published var previousDestination: NavigationDestination = .home
+    @Published var restartFromSummary: Bool = false
     
     func navigate(to destination: NavigationDestination) {
         previousDestination = currentDestination
