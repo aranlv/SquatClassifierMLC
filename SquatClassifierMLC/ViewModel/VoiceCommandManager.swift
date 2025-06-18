@@ -92,7 +92,7 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
                                 self.viewModel?.startWorkout()
                                 }
                             self.lastRecognizedPhrase = ""
-                        } else if command.contains("end workout") && self.isWorkoutRunning {
+                        } else if command.contains("done workout") && self.isWorkoutRunning {
                             self.isWorkoutRunning = false
                             self.speak("Workout ended")
                             //                            self.stopListening()
@@ -101,6 +101,7 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
                                 self.viewModel?.stopWorkout()
                                 self.viewModel?.repCount = 0
                                 self.viewModel?.uiCount = 0
+                                self.viewModel?.navigateToSummary = true 
                             }
                             
                             self.lastRecognizedPhrase = "" // Allow future re-triggers

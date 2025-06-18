@@ -19,6 +19,9 @@ class ViewModel: ObservableObject {
 //    @Published var isWorkoutRunning = false
     @Published var isWorkoutActive: Bool = false
     @Published var repCount: Int = 0
+    @Published var navigateToSummary: Bool = false
+    @Published var goodFormCount: Int = 0
+    
     var voiceManager: VoiceCommandManager?
 //    var repCountPublisher: Published<Int>.Publisher { $repCount }
 //    var predictedActionPublisher: Published<String?>.Publisher { $predictedAction }
@@ -179,6 +182,9 @@ class ViewModel: ObservableObject {
 //            }
             self.predictedAction = result.label
             print("🏷️ Rep label → \(result.label)")
+            
+            if result.label == "good" {
+                self.goodFormCount += 1
 
             let labelToSpeak = formatLabelForSpeech(result.label)
 
@@ -187,6 +193,7 @@ class ViewModel: ObservableObject {
 
             let speechText = "Reps \(self.repCount), \(labelToSpeak)"
             self.voiceManager?.speak(speechText)
+        }
         }
     }
     

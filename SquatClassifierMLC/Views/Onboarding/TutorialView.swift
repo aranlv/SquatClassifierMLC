@@ -192,7 +192,7 @@ struct Step1View: View {
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 30)
                         
-                        Text("Prepare yourself for more accurate tracking")
+                        Text("Keep your whole body in frame for more accurate tracking")
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
@@ -413,11 +413,11 @@ struct Step3View: View {
                                         .clipShape(Circle())
                                     
                                     VStack(alignment: .leading, spacing: 5) {
-                                        Text("Say \"Start Workout\"")
+                                        Text("Tap \"I'm Ready\" to Start Workout")
                                             .font(.headline)
                                             .foregroundColor(.white)
                                             .fixedSize(horizontal: false, vertical: true)
-                                        Text("Stand in position and say this to begin your workout")
+                                        Text("A 5-seconds countdown will start right after")
                                             .font(.subheadline)
                                             .foregroundColor(.gray)
                                             .fixedSize(horizontal: false, vertical: true)
@@ -477,7 +477,10 @@ struct Step3View: View {
                 .zIndex(1)
             }
             .fullScreenCover(isPresented: $showCameraWithPoses) {
-                CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
+                NavigationStack {
+                    CameraWithPosesAndOverlaysView(voiceManager: voiceManager)
+                        .environmentObject(navigationViewModel)
+                }
                     .onAppear {
                         print("CameraWithPosesAndOverlaysView presented from Step3View") // Debug print
                     }

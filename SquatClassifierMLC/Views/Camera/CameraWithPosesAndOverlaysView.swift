@@ -11,9 +11,17 @@ struct CameraWithPosesAndOverlaysView : View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel = ViewModel()
     @ObservedObject var voiceManager: VoiceCommandManager
+    @EnvironmentObject var navigationViewModel: AppNavigationViewModel
+    
+    @State private var showCountdown = true
+    @State private var countdownValue = 5
+    @State private var showExitAlert = false
+    var skipAlert: Bool = false
+//    @State private var navigateToSummary = false
 
     var body: some View {
         ZStack {
+        // 1. Camera and overlays
         OverlayView(count: viewModel.uiCount, actionLabel: viewModel.predictedAction) {
             viewModel.onCameraButtonTapped()
         }
@@ -26,40 +34,83 @@ struct CameraWithPosesAndOverlaysView : View {
                     PosesView(poses: poses)
                 }
                 .ignoresSafeArea()
+            } else {
+                Color.black.ignoresSafeArea()
             }
         }
-        
-        VStack {
-            HStack {
-                Button {
-                    voiceManager.stopListening()
-                    viewModel.isWorkoutActive = false
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .resizable()
-                        .frame(width: 32, height: 32)
-                        .foregroundColor(.white)
-                        .padding()
-                    
+            
+            // ✅ 2. Countdown overlay
+            if showCountdown {
+                Color.black.opacity(0.6).ignoresSafeArea()
+                
+                Text("\(countdownValue)")
+                    .font(.system(size: 100, weight: .bold))
+                    .foregroundColor(.white)
+                    .transition(.opacity)
+                    .onAppear {
+                        startCountdown()
+                    }
+            }
+            
+            // 3. Top X button
+            VStack {
+                HStack {
+                    Button {
+                        showExitAlert = true
+                        voiceManager.stopListening()
+                        viewModel.isWorkoutActive = false
+                        if skipAlert {
+                                dismiss()
+                            } else {
+                                showExitAlert = true
+                            }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                            .foregroundColor(.white)
+                            .padding()
+                        
                 }
                 Spacer()
             }
             Spacer()
         }
     }
+        .alert("End Workout?", isPresented: $showExitAlert) {
+                    Button("End Workout", role: .destructive) {
+                        voiceManager.stopListening()
+                        viewModel.isWorkoutActive = false
+                        viewModel.navigateToSummary = true
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Are you sure you want to end this workout session?")
+                }
         .onAppear {
             voiceManager.viewModel = viewModel
             voiceManager.requestPermission()
             voiceManager.startListening()
-//            voiceManager.observe(viewModel: viewModel)
+            //            voiceManager.observe(viewModel: viewModel)
             viewModel.voiceManager = voiceManager
             viewModel.initialize()
         }
-        .onChange(of: voiceManager.isWorkoutRunning) { oldValue, newValue in
-            viewModel.isWorkoutActive = newValue
+        .onChange(of: voiceManager.isWorkoutRunning) { _, isRunning in
+            viewModel.isWorkoutActive = isRunning
         }
-//        .onChange (of: voiceManager.lastCommand) { _, newCommand in
+        .navigationDestination(isPresented: $viewModel.navigateToSummary) {
+            SummaryView(
+                totalReps: viewModel.repCount,
+                goodForm: viewModel.goodFormCount,
+                badForm: viewModel.repCount - viewModel.goodFormCount, onRestart: {
+                    showCountdown = true
+                    viewModel.initialize()
+                }
+            )
+            .environmentObject(navigationViewModel)
+        }
+    }
+    //        .onChange (of: voiceManager.lastCommand) { _, newCommand in
 //            if newCommand == "start" {
 //                viewModel.isWorkoutActive = true
 //            } else if newCommand == "stop" {
@@ -74,7 +125,21 @@ struct CameraWithPosesAndOverlaysView : View {
 //            let spokenText = label == "good" ? "Good!" : "Bad form"
 //            voiceManager.speak(spokenText)
 //                }
-    }
+    private func startCountdown() {
+            Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                if countdownValue > 1 {
+                    countdownValue -= 1
+                } else {
+                    timer.invalidate()
+                    showCountdown = false
+                    
+                    Task { @MainActor in
+                        viewModel.isWorkoutActive = true
+                    }
+                }
+            }
+        }
+    
 }
 
 //struct CameraWithOverlaysView_Previews: PreviewProvider {

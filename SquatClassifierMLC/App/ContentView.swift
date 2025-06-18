@@ -11,7 +11,7 @@ struct ContentView: View {
     @StateObject private var navigationViewModel = AppNavigationViewModel()
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack(alignment: .bottom) {
                 switch navigationViewModel.currentDestination {
                 case .home:
@@ -74,6 +74,7 @@ struct ContentView: View {
                 }
             }
         }
+        .environmentObject(navigationViewModel)
     }
 }
 
