@@ -35,8 +35,12 @@ struct CameraView: View {
         .edgesIgnoringSafeArea([.top, .bottom])
         .navigationBarBackButtonHidden(true)
         .onAppear {
-            // Start camera when the view appears
             viewModel.startCamera()
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+        .onDisappear(){
+            viewModel.stopCamera()
+            UIApplication.shared.isIdleTimerDisabled = false
         }
     }
 }

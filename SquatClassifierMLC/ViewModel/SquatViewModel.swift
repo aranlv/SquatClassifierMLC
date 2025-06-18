@@ -30,9 +30,13 @@ class SquatViewModel: ObservableObject {
     private let kneeDownThreshold  = 110.0      // deg
     private let kneeUpThreshold    = 150.0      // deg
     
+    private var shoulderTopY: CGFloat = 0
+    private var shoulderBottomY: CGFloat = .greatestFiniteMagnitude
+    private var shoulderMotionDelta: CGFloat = 0.05
+    
     // total frames seen so far
     private var frameIndex = 0
-
+    
     // store model outputs keyed by the window's last frame index
     private var lastPredictions: [Int: ActionPrediction] = [:]
     
@@ -91,7 +95,7 @@ class SquatViewModel: ObservableObject {
         case "bad_toe":
             return "Knees Over Toes"
         default:
-            return "Observing..."
+            return "Go!"
         }
     }
     
@@ -125,48 +129,57 @@ class SquatViewModel: ObservableObject {
     
     private func detectRep(from pose: Pose) {
         guard let hip = pose.landmarks.first(where: { $0.name == .leftHip })?.location,
-                  let knee = pose.landmarks.first(where: { $0.name == .leftKnee })?.location,
-                  let ankle = pose.landmarks.first(where: { $0.name == .leftAnkle })?.location else { return }
-            
-            let angle = calculateKneeAngle(hip: hip, knee: knee, ankle: ankle)
-            
-            switch squatState {
-            case .unknown:
-                if angle > kneeUpThreshold {
-                    squatState = .standing
-                }
-            case .standing:
-                if angle < kneeDownThreshold {
-                    squatState = .squatting
-                }
-            case .squatting:
-                if angle > kneeUpThreshold {
+              let knee = pose.landmarks.first(where: { $0.name == .leftKnee })?.location,
+              let ankle = pose.landmarks.first(where: { $0.name == .leftAnkle })?.location,
+        let shoulder = pose.landmarks.first(where: {$0.name == .leftShoulder})?.location else { return }
+        
+        let angle = calculateKneeAngle(hip: hip, knee: knee, ankle: ankle)
+        
+        switch squatState {
+        case .unknown:
+            if angle > kneeUpThreshold {
+                squatState = .standing
+                shoulderTopY = shoulder.y
+                shoulderBottomY = .greatestFiniteMagnitude
+                
+            }
+        case .standing:
+            if angle < kneeDownThreshold {
+                squatState = .squatting
+                shoulderBottomY = shoulder.y
+            }
+        case .squatting:
+            shoulderBottomY = min(shoulderBottomY, shoulder.y)
+            if angle > kneeUpThreshold {
+                let shoulderRise = shoulder.y - shoulderBottomY
+                if shoulderRise > shoulderMotionDelta {
                     squatState = .standing
                     onRepCompleted()
-                    
                 }
+                
             }
         }
+    }
     
     private func onRepCompleted() {
         repCount += 1
-
-            // find the prediction whose window ended at or just before this frame:
-            let key = lastPredictions.keys
-                           .filter { $0 <= frameIndex }
-                           .max()
-            if let k = key, let pred = lastPredictions[k] {
-                // singulated form feedback for this rep:
-                actionLabel       = pred.label
-                confidenceLabel   = pred.confidenceString ?? ""
-                print("💡 Rep \(repCount) form → \(pred.label) (\(pred.confidenceString ?? ""))")
-                updateUI(with: pred)
-            }
-
-            // optionally purge old entries:
-            lastPredictions.keys
-                .filter { $0 < (frameIndex - 60) }
-                .forEach { lastPredictions.removeValue(forKey: $0) }
+        
+        // find the prediction whose window ended at or just before this frame:
+        let key = lastPredictions.keys
+            .filter { $0 <= frameIndex }
+            .max()
+        if let k = key, let pred = lastPredictions[k] {
+            // singulated form feedback for this rep:
+            actionLabel       = pred.label
+            confidenceLabel   = pred.confidenceString ?? ""
+            print("💡 Rep \(repCount) form → \(pred.label) (\(pred.confidenceString ?? ""))")
+            updateUI(with: pred)
+        }
+        
+        // optionally purge old entries:
+        lastPredictions.keys
+            .filter { $0 < (frameIndex - 60) }
+            .forEach { lastPredictions.removeValue(forKey: $0) }
     }
     
     private func addFrameCount(_ count: Int, to label: String) {

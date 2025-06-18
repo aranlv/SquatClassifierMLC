@@ -18,7 +18,7 @@ struct Step1View: View {
                     
                     VStack(spacing: 15) {
                         Text("Step 1")
-                            .font(.largeTitle)
+                            .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
@@ -33,6 +33,7 @@ struct Step1View: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 30)
+                            .padding(.top, -10)
                         
                         Image("step1")
                             .resizable()
@@ -124,7 +125,7 @@ struct Step2View: View {
                     
                     VStack(spacing: 15) {
                         Text("Step 2")
-                            .font(.largeTitle)
+                            .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
@@ -138,6 +139,8 @@ struct Step2View: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 30)
+                            .padding(.top, -10)
+
                         
                         Image("step2")
                             .resizable()
@@ -202,7 +205,7 @@ struct Step3View: View {
                         
                         VStack(spacing: 15) {
                             Text("Step 3")
-                                .font(.largeTitle)
+                                .font(.title)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
