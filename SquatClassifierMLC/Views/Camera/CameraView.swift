@@ -26,8 +26,7 @@ struct CameraView: View {
                     viewModel.toggleCamera()
                 }, stopAction: {
                     viewModel.stopCamera()
-                    navigationViewModel.navigate(to: .summary(total:viewModel.repCount,
-                                                              good: viewModel.goodFormCount))
+                    navigationViewModel.navigate(to: .summary(total:viewModel.repCount, good: viewModel.goodFormCount))
                 })
                 
                 if showCountdown {
@@ -48,11 +47,21 @@ struct CameraView: View {
         .onAppear {
             viewModel.startCamera()
             UIApplication.shared.isIdleTimerDisabled = true
+            voiceManager.onFinishCommand = {
+                self.handleFinishCommand()
+            }
+            voiceManager.startListening()
         }
         .onDisappear(){
             viewModel.stopCamera()
             UIApplication.shared.isIdleTimerDisabled = false
+            voiceManager.stopListening()
         }
+    }
+    
+    private func handleFinishCommand() {
+        print("Finish command received!")
+        navigationViewModel.navigate(to: .summary(total:viewModel.repCount, good: viewModel.goodFormCount))
     }
 }
 

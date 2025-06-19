@@ -14,24 +14,78 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
     
     // MARK: - Voice Synthesizer
     private let speechSynthesizer = AVSpeechSynthesizer()
-
-    // MARK: - Published Properties
-//    @Published var isWorkoutRunning: Bool = false
-//    @Published var lastCommand: String = ""
-//    @Published var isListening: Bool = false
     
-//    // MARK: - Private Properties
-//    private var lastRecognizedPhrase: String = ""
-//    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
-//    private let audioEngine = AVAudioEngine()
-//    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-//    private var recognitionTask: SFSpeechRecognitionTask?
+    // MARK: - Speech Recognizer
+    @Published private var lastRecognizedPhrase: String = ""
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+    private let audioEngine = AVAudioEngine()
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    
+    // Navigation action delegate
+    var onFinishCommand: (() -> Void)?
 
     // MARK: - Init
     override init() {
         super.init()
-        speechSynthesizer.delegate = self
+//        speechSynthesizer.delegate = self
     }
+    
+    // MARK: - Start/Stop Listening
+    func startListening() {
+            guard let recognizer = speechRecognizer, recognizer.isAvailable else {
+                return
+            }
+            
+            recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+            guard let recognitionRequest = recognitionRequest else {
+                return
+            }
+            
+            recognitionRequest.shouldReportPartialResults = true
+            
+            recognitionTask = recognizer.recognitionTask(with: recognitionRequest) { result, error in
+                if let result = result {
+                    let bestTranscription = result.bestTranscription.formattedString
+                    self.lastRecognizedPhrase = bestTranscription
+                    // Check if user says "finish"
+                    if bestTranscription.lowercased().contains("finish") {
+                        self.handleFinishCommand()
+                    }
+                }
+                if let error = error {
+                    print("Error recognizing speech: \(error)")
+                }
+            }
+            
+            // Set up the audio input
+            let inputNode = audioEngine.inputNode
+            let recordingFormat = inputNode.outputFormat(forBus: 0)
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, time) in
+                self.recognitionRequest?.append(buffer)
+            }
+            
+            audioEngine.prepare()
+            do {
+                try audioEngine.start()
+            } catch {
+                print("Error starting audio engine: \(error)")
+            }
+        }
+        
+        func stopListening() {
+            audioEngine.stop()
+            recognitionRequest?.endAudio()
+            recognitionTask?.cancel()
+        }
+        
+        // MARK: - Handle "finish" Command
+        private func handleFinishCommand() {
+            DispatchQueue.main.async {
+                self.onFinishCommand?()
+            }
+        }
+
 
     // MARK: - Speech
     func speakFeedback(number: Int, label: String) {
