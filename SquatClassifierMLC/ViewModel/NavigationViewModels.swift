@@ -8,6 +8,15 @@
 import Foundation
 import Combine
 
+enum NavigationDestination: Hashable {
+    case home
+    case tutorial
+    case step1
+    case step2
+    case step3
+    case summary(total: Int, good: Int)
+}
+
 // MARK: - ViewModels
 class AppNavigationViewModel: ObservableObject {
     @Published var currentDestination: NavigationDestination = .home

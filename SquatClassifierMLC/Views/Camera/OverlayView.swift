@@ -1,66 +1,94 @@
-/*
-See LICENSE folder for this sample’s licensing information.
-
-Abstract:
-The app's overlay view.
-*/
-
+///*
+// See LICENSE folder for this sample’s licensing information.
+//
+// Abstract:
+// The app's overlay view.
+// */
+//
 import SwiftUI
 
 /// - Tag: OverlayView
 struct OverlayView: View {
-
-    let count: Float
+    
+    @ObservedObject var viewModel: SquatViewModel
     let flip: () -> Void
-
+    let stopAction: () -> Void
+    
     var body: some View {
         VStack {
-//            HStack {
-//                Spacer()
-//                VStack {
-//                    Text("Count")
-//                        .font(.title)
-//                        .foregroundColor(.white)
-//                    Text("\(count, specifier: "%2.0f")")
-//                        .font(.title)
-//                        .foregroundColor(.white)
-//                }
-//                Spacer()
-//            }.bubbleBackground()
-
-            Spacer()
-
+            // Action label and reps
             HStack {
-                Button {
-                    flip()
-                } label: {
-                    Label("Flip", systemImage: "arrow.triangle.2.circlepath.camera.fill")
-                        .foregroundColor(.primary)
-                        .labelStyle(.iconOnly)
+                // Exit button
+                Button(action: stopAction) {
+                    Image(systemName: "xmark")
+                        .foregroundColor(.white)
+                        .font(.title2)
+                        .padding()
+                        .clipShape(Circle())
+                }
+                
+                // Reps
+                HStack(spacing: 4) {
+                    Text("Rep")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    Text("\(viewModel.repCount)")
+                        .font(.title2).bold()
+                        .foregroundColor(.white)
+                }
+                .opacity(0.60)
+                .bubbleBackground()
+                
+                // Action Label
+                if viewModel.actionLabel != "Start" {
+                    Text(viewModel.actionLabel)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .opacity(0.60)
                         .bubbleBackground()
                 }
-
+                
                 Spacer()
             }
-        }.padding()
+            .padding(.top, 25)
+            
+            
+            Spacer()
+            
+            // Bottom‑left flip button
+            HStack {
+                Button(action: flip) {
+                    Label("Flip", systemImage: "arrow.triangle.2.circlepath.camera.fill")
+                        .labelStyle(.iconOnly)
+                        .foregroundColor(.primary)
+                        .bubbleBackground()
+                }
+                Spacer()
+            }
+        }
+        .padding(30)
     }
 }
 
 extension View {
+    /// Semi‑transparent rounded rectangle behind any view.
     func bubbleBackground() -> some View {
         self.padding()
             .background {
                 RoundedRectangle(cornerRadius: 10)
-                    .foregroundColor(.primary)
-                    .opacity(0.4)
+                    .foregroundColor(Color(red: 2/255, green: 2/255, blue: 2/255, opacity: 0.6))
             }
     }
 }
 
-struct OverlayView_Previews: PreviewProvider {
-    static var previews: some View {
-        OverlayView(count: 3.0) { }
-            .background(Color.red.opacity(0.4))
-
-    }
-}
+//struct OverlayView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ZStack {
+//            Color.red.opacity(0.3)
+//            OverlayView(
+//        }
+//        .edgesIgnoringSafeArea([.top, .bottom])
+//    }
+//}
