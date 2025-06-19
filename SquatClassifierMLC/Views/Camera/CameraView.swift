@@ -10,6 +10,7 @@ import SwiftUI
 struct CameraView: View {
     @StateObject var viewModel = SquatViewModel()
     @ObservedObject var navigationViewModel = AppNavigationViewModel()
+    @ObservedObject var voiceManager = VoiceCommandManager()
     @State private var showCountdown = true
     
     var body: some View {
@@ -30,7 +31,7 @@ struct CameraView: View {
                 })
                 
                 if showCountdown {
-                    CountdownView(isShowing: $showCountdown)
+                    CountdownView(voiceManager: voiceManager, isShowing: $showCountdown)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .ignoresSafeArea()
                         .zIndex(2)

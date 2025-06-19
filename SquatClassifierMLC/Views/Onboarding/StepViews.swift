@@ -9,6 +9,7 @@ import SwiftUI
 
 struct StepView: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
+    @ObservedObject var voiceManager: VoiceCommandManager
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -54,7 +55,7 @@ struct StepView: View {
                     
                     if navigationViewModel.currentDestination != .step3 {
                         NavigationLink(
-                            destination: CameraView(navigationViewModel: navigationViewModel)
+                            destination: CameraView(navigationViewModel: navigationViewModel, voiceManager: voiceManager)
                         ) {
                             Text("Skip")
                                 .font(.headline)

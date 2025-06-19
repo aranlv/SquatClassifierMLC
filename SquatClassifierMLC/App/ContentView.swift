@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var navigationViewModel = AppNavigationViewModel()
+    @StateObject private var voiceManager = VoiceCommandManager()
     
     var body: some View {
         NavigationView {
@@ -19,7 +20,7 @@ struct ContentView: View {
                 case .tutorial:
                     TutorialView(navigationViewModel: navigationViewModel)
                 case .step1, .step2, .step3:
-                    StepView(navigationViewModel: navigationViewModel)
+                    StepView(navigationViewModel: navigationViewModel, voiceManager: voiceManager)
                 case let .summary(total, good):
                     SummaryView(
                         totalReps: total,

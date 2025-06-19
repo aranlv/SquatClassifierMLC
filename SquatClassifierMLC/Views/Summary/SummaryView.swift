@@ -87,7 +87,7 @@ struct SummaryView: View {
                 
 //                Spacer()
 
-                Text("Predictions may be imperfect and not always be accurate.")
+                Text("Predictions may be imperfect and not always be accurate")
                     .foregroundColor(.white)
                     .opacity(0.7)
                     .multilineTextAlignment(.center)

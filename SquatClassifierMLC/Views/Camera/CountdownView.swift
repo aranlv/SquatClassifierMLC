@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 
 struct CountdownView: View {
+    @ObservedObject var voiceManager: VoiceCommandManager
     @Binding var isShowing: Bool
     @State private var value = 5
     @State private var timer = Timer.publish(every: 1.5, on: .main, in: .common)
@@ -29,7 +30,7 @@ struct CountdownView: View {
         .onReceive(timer) { _ in
             if value > 1 {
                 value -= 1
-                // voiceManager.speakCountdown(number: countdownValue)
+                voiceManager.speakCountdown(number: value)
             } else {
                 timer.upstream.connect().cancel()
                 withAnimation { isShowing = false }
@@ -37,12 +38,13 @@ struct CountdownView: View {
         }
         .onAppear {
             value = 5
+            voiceManager.speakCountdown(number: value)
         }
     }
 }
 
 struct CountdownView_Previews: PreviewProvider {
     static var previews: some View {
-        CountdownView(isShowing: .constant(true))
+        CountdownView(voiceManager: VoiceCommandManager(), isShowing: .constant(true))
     }
 }
