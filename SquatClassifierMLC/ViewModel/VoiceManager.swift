@@ -24,69 +24,112 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
     
     // Navigation action delegate
     var onFinishCommand: (() -> Void)?
-
+    
     // MARK: - Init
     override init() {
         super.init()
-//        speechSynthesizer.delegate = self
+        //        speechSynthesizer.delegate = self
+    }
+    
+    // MARK: - Request Permissions
+    func requestPermissions(completion: @escaping (Bool) -> Void) {
+        // Check and request Microphone permission for iOS 17 and later
+        if #available(iOS 17.0, *) {
+            AVAudioApplication.requestRecordPermission { granted in
+                if granted {
+                    // Request Speech Recognition permission
+                    SFSpeechRecognizer.requestAuthorization { authStatus in
+                        switch authStatus {
+                        case .authorized:
+                            completion(true)
+                        case .denied, .restricted, .notDetermined:
+                            completion(false)
+                        @unknown default:
+                            completion(false)
+                        }
+                    }
+                } else {
+                    completion(false)
+                }
+            }
+        } else {
+            // Fallback for earlier iOS versions
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                if granted {
+                    // Request Speech Recognition permission
+                    SFSpeechRecognizer.requestAuthorization { authStatus in
+                        switch authStatus {
+                        case .authorized:
+                            completion(true)
+                        case .denied, .restricted, .notDetermined:
+                            completion(false)
+                        @unknown default:
+                            completion(false)
+                        }
+                    }
+                } else {
+                    completion(false)
+                }
+            }
+        }
     }
     
     // MARK: - Start/Stop Listening
     func startListening() {
-            guard let recognizer = speechRecognizer, recognizer.isAvailable else {
-                return
-            }
-            
-            recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
-            guard let recognitionRequest = recognitionRequest else {
-                return
-            }
-            
-            recognitionRequest.shouldReportPartialResults = true
-            
-            recognitionTask = recognizer.recognitionTask(with: recognitionRequest) { result, error in
-                if let result = result {
-                    let bestTranscription = result.bestTranscription.formattedString
-                    self.lastRecognizedPhrase = bestTranscription
-                    // Check if user says "finish"
-                    if bestTranscription.lowercased().contains("finish") {
-                        self.handleFinishCommand()
-                    }
-                }
-                if let error = error {
-                    print("Error recognizing speech: \(error)")
+        guard let recognizer = speechRecognizer, recognizer.isAvailable else {
+            return
+        }
+        
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        guard let recognitionRequest = recognitionRequest else {
+            return
+        }
+        
+        recognitionRequest.shouldReportPartialResults = true
+        
+        recognitionTask = recognizer.recognitionTask(with: recognitionRequest) { result, error in
+            if let result = result {
+                let bestTranscription = result.bestTranscription.formattedString
+                self.lastRecognizedPhrase = bestTranscription
+                // Check if user says "finish"
+                if bestTranscription.lowercased().contains("finish") {
+                    self.handleFinishCommand()
                 }
             }
-            
-            // Set up the audio input
-            let inputNode = audioEngine.inputNode
-            let recordingFormat = inputNode.outputFormat(forBus: 0)
-            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, time) in
-                self.recognitionRequest?.append(buffer)
-            }
-            
-            audioEngine.prepare()
-            do {
-                try audioEngine.start()
-            } catch {
-                print("Error starting audio engine: \(error)")
+            if let error = error {
+                print("Error recognizing speech: \(error)")
             }
         }
         
-        func stopListening() {
-            audioEngine.stop()
-            recognitionRequest?.endAudio()
-            recognitionTask?.cancel()
+        // Set up the audio input
+        let inputNode = audioEngine.inputNode
+        let recordingFormat = inputNode.outputFormat(forBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, time) in
+            self.recognitionRequest?.append(buffer)
         }
         
-        // MARK: - Handle "finish" Command
-        private func handleFinishCommand() {
-            DispatchQueue.main.async {
-                self.onFinishCommand?()
-            }
+        audioEngine.prepare()
+        do {
+            try audioEngine.start()
+        } catch {
+            print("Error starting audio engine: \(error)")
         }
-
-
+    }
+    
+    func stopListening() {
+        audioEngine.stop()
+        recognitionRequest?.endAudio()
+        recognitionTask?.cancel()
+    }
+    
+    // MARK: - Handle "finish" Command
+    private func handleFinishCommand() {
+        DispatchQueue.main.async {
+            self.onFinishCommand?()
+        }
+    }
+    
+    
     // MARK: - Speech
     func speakFeedback(number: Int, label: String) {
         DispatchQueue.main.async {
@@ -98,7 +141,7 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
             self.speechSynthesizer.speak(utterance)
         }
     }
-
+    
     func speakCountdown(number: Int) {
         DispatchQueue.main.async {
             let utterance = AVSpeechUtterance(string: "\(number)")
@@ -107,7 +150,7 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
             self.speechSynthesizer.speak(utterance)
         }
     }
-
+    
     func speakStartWorkout() {
         DispatchQueue.main.async {
             let utterance = AVSpeechUtterance(string: "GO")

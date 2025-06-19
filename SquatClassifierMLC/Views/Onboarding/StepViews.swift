@@ -18,7 +18,7 @@ struct StepView: View {
                     .tag(NavigationDestination.step1)
                 Step2View(navigationViewModel: navigationViewModel)
                     .tag(NavigationDestination.step2)
-                Step3View(navigationViewModel: navigationViewModel)
+                Step3View(navigationViewModel: navigationViewModel, voiceManager: voiceManager)
                     .tag(NavigationDestination.step3)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -210,7 +210,7 @@ struct Step2View: View {
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 30)
                             .padding(.top, -10)
-
+                        
                         
                         Image("step2")
                             .resizable()
@@ -255,6 +255,7 @@ struct Step2View: View {
 
 struct Step3View: View {
     @ObservedObject var navigationViewModel: AppNavigationViewModel
+    @ObservedObject var voiceManager: VoiceCommandManager
     
     var body: some View {
         GeometryReader { geometry in
@@ -369,6 +370,15 @@ struct Step3View: View {
         .ignoresSafeArea()
         .navigationBarHidden(true)
         .onAppear {
+            voiceManager.requestPermissions { granted in
+                if granted {
+                    print("Permissions granted. You can start using voice commands.")
+                    // You can perform additional actions if needed, like starting voice listening
+                } else {
+                    print("Permissions denied. Cannot use voice features.")
+                    // Handle denied permissions by showing an alert or a message
+                }
+            }
             print("Step3View appeared") // Debug print
         }
     }
@@ -390,7 +400,7 @@ struct Step1View_Previews: PreviewProvider {
 
 struct Step3View_Previews: PreviewProvider {
     static var previews: some View {
-        Step3View(navigationViewModel: AppNavigationViewModel())
+        Step3View(navigationViewModel: AppNavigationViewModel(), voiceManager: VoiceCommandManager())
             .preferredColorScheme(.light)
     }
 }
