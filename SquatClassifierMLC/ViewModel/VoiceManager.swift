@@ -32,7 +32,8 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
 
     // MARK: - Speech
     func speakFeedback(number: Int, label: String) {
-        let text = String("Reps \(number), \(label)")
+        let formattedLabel = formatLabelForSpeech(label)
+        let text = String("Rep \(number), \(formattedLabel)")
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         utterance.rate = 0.5
@@ -51,5 +52,18 @@ class VoiceCommandManager: NSObject, ObservableObject, SFSpeechRecognizerDelegat
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         utterance.rate = 0.6
         speechSynthesizer.speak(utterance)
+    }
+    
+    private func formatLabelForSpeech(_ label: String) -> String {
+        switch label {
+        case "bad_toe":
+            return "Push your knees back"
+        case "bad_inwards":
+            return "Push your knees out"
+        case "good":
+            return "Nice form"
+        default:
+            return label.replacingOccurrences(of: "_", with: " ")
+        }
     }
 }

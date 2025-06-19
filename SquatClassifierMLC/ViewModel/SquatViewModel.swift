@@ -41,6 +41,9 @@ class SquatViewModel: ObservableObject {
     // store model outputs keyed by the window's last frame index
     private var lastPredictions: [Int: ActionPrediction] = [:]
     
+    // voice feedback
+    private let voiceManager = VoiceCommandManager()
+    
     init() {
         setupPipeline()
     }
@@ -179,6 +182,7 @@ class SquatViewModel: ObservableObject {
             print("💡 Rep \(repCount) form → \(pred.label) (\(pred.confidenceString ?? ""))")
             if pred.label == "good" { goodFormCount += 1 }
             updateUI(with: pred)
+            voiceManager.speakFeedback(number: repCount, label: pred.label)
         }
         
         // optionally purge old entries:
