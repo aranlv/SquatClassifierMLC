@@ -265,6 +265,7 @@
 				DEVELOPMENT_TEAM = 2CXYFC5LAK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ReForm;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to capture input for an Action Classifier model ";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app uses the microphone to listen to your voice commands.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "This app uses speech recognition to recognize your voice commands.";
@@ -296,6 +297,7 @@
 				DEVELOPMENT_TEAM = 2CXYFC5LAK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ReForm;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to capture input for an Action Classifier model ";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app uses the microphone to listen to your voice commands.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "This app uses speech recognition to recognize your voice commands.";
