@@ -20,7 +20,7 @@
 - **SwiftUI & UIKit** for UI
   - Uses `@StateObject`, `@ObservedObject`, `ZStack`, `TabView`, etc.
   - UIKit only for low-level `CGContext` drawing
-- **AVFoundation** for camera input (60 fps)
+- **AVFoundation** for camera input (30 fps)
 - **Vision + CoreML**
   - `VNDetectHumanBodyPoseRequest` detects 17 body keypoints per frame
   - Custom CoreML sequence model classifies pose windows (~30ms latency)
